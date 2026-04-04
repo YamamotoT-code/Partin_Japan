@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BED / EQD2 計算ツール（放射線治療）</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a3a5c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BED EQD2">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a3a5c 0%, #2b6cb0 100%);
+      color: white;
+      padding: 28px 24px 22px;
+      text-align: center;
+    }
+    header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+    header p  { font-size: 0.82rem; opacity: 0.85; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a3a5c;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #ebf0f7;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      background: #2b6cb0;
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* α/β row */
+    .ab-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .ab-label { font-size: 0.95rem; font-weight: 700; color: #2d3748; white-space: nowrap; }
+    .ab-btn {
+      padding: 8px 16px;
+      border: 1.5px solid #d0dae8;
+      border-radius: 99px;
+      background: white;
+      font-size: 0.9rem;
+      color: #4a6080;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .ab-btn:hover { border-color: #2b6cb0; color: #2b6cb0; }
+    .ab-btn.active { background: #2b6cb0; border-color: #2b6cb0; color: white; font-weight: 600; }
+    .ab-custom-wrap { display: flex; align-items: center; gap: 6px; }
+    .ab-custom-wrap input {
+      width: 96px;
+      padding: 8px 10px;
+      border: 1.5px solid #d0dae8;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .ab-custom-wrap input:focus { outline: none; border-color: #2b6cb0; }
+    .ab-custom-wrap span { font-size: 0.9rem; color: #4a6080; font-weight: 600; }
+
+    /* Input fields */
+    .input-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 520px) { .input-row { grid-template-columns: 1fr; } }
+
+    .field-group { position: relative; }
+    .field-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #4a6080;
+      margin-bottom: 5px;
+    }
+    .field-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #d0dae8;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #2d3748;
+      background: white;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .field-group input:focus { outline: none; border-color: #2b6cb0; }
+    .field-group input.calculated {
+      background: #ebf8ff;
+      border-color: #90cdf4;
+      color: #2b6cb0;
+    }
+    .calc-badge {
+      position: absolute;
+      right: 8px;
+      top: 34px;
+      font-size: 0.62rem;
+      color: #2b6cb0;
+      background: #bee3f8;
+      padding: 1px 5px;
+      border-radius: 4px;
+      pointer-events: none;
+      display: none;
+    }
+
+    /* Result boxes */
+    .result-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .result-box {
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .result-box .rlabel {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 2px;
+    }
+    .result-box .rval {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #1a3a5c;
+    }
+    .result-box .runit { font-size: 0.82rem; color: #718096; margin-left: 2px; font-weight: 400; }
+    .result-box.bed  { border-left: 4px solid #2b6cb0; }
+    .result-box.eqd2 { border-left: 4px solid #276749; }
+    .result-box.bed  .rval { color: #2b6cb0; }
+    .result-box.eqd2 .rval { color: #276749; }
+
+    .formula-hint {
+      font-size: 0.74rem;
+      color: #a0aec0;
+      margin-top: 12px;
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* ── Compare ── */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 580px) { .compare-grid { grid-template-columns: 1fr; } }
+
+    .compare-panel {
+      background: #f7fafc;
+      border-radius: 10px;
+      padding: 16px;
+      border: 1.5px solid #e2e8f0;
+    }
+    .compare-panel h3 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .panel-a h3 { color: #2b6cb0; border-color: #bee3f8; }
+    .panel-b h3 { color: #276749; border-color: #c6f6d5; }
+
+    .cmp-inputs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+    .cmp-result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .cmp-result-row:last-child { border-bottom: none; }
+    .cmp-rlabel { font-size: 0.78rem; font-weight: 600; color: #718096; }
+    .cmp-rval   { font-size: 1.05rem; font-weight: 800; color: #1a3a5c; }
+
+    .diff-bar {
+      background: #edf2f7;
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .diff-item { text-align: center; }
+    .diff-dlabel { font-size: 0.72rem; color: #718096; margin-bottom: 3px; }
+    .diff-dval   { font-size: 1rem; font-weight: 700; }
+    .diff-pos  { color: #276749; }
+    .diff-neg  { color: #c53030; }
+    .diff-zero { color: #a0aec0; }
+
+    /* ── Advanced ── */
+    .adv-toggle-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0;
+    }
+    .adv-chevron {
+      font-size: 0.85rem;
+      color: #718096;
+      transition: transform 0.25s;
+    }
+    .adv-chevron.open { transform: rotate(180deg); }
+    .adv-body { margin-top: 20px; }
+
+    .adv-section {
+      background: #f7fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .adv-section h4 {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #4a6080;
+      margin-bottom: 14px;
+    }
+
+    .adv-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    @media (max-width: 400px) { .adv-input-row { grid-template-columns: 1fr; } }
+
+    .btn-calc {
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, #1a3a5c, #2b6cb0);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 2px;
+    }
+    .btn-calc:hover { opacity: 0.9; }
+
+    .adv-result {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+      background: white;
+      border-radius: 8px;
+      padding: 14px;
+      border: 1px solid #e2e8f0;
+    }
+    .adv-result-item { text-align: center; }
+    .adv-rlabel { font-size: 0.72rem; font-weight: 600; color: #718096; text-transform: uppercase; margin-bottom: 3px; }
+    .adv-rval   { font-size: 1.15rem; font-weight: 800; color: #1a3a5c; }
+
+    .warning-box {
+      background: #fffaf0;
+      border-left: 4px solid #dd6b20;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: #7b341e;
+      margin-top: 14px;
+      line-height: 1.7;
+    }
+
+    /* Small ab-row for compare panels */
+    .ab-row-sm { gap: 4px; margin-bottom: 10px; }
+    .ab-row-sm .ab-btn { font-size: 0.72rem; padding: 3px 8px; }
+    .ab-row-sm .ab-custom-wrap input { width: 52px; font-size: 0.72rem; padding: 3px 5px; }
+
+    footer {
+      background: #2d3748;
+      color: #a0aec0;
+      text-align: center;
+      padding: 18px;
+      font-size: 0.75rem;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>BED / EQD2 計算ツール（放射線治療）</h1>
+  <p>Linear-Quadratic モデルに基づく生物学的等価線量計算</p>
+</header>
+
+<div class="container">
+
+  <!-- ========== ① 基本計算 ========== -->
+  <div class="card">
+    <div class="card-title">
+      <span class="section-num">1</span>
+      基本計算
+    </div>
+
+    <!-- α/β -->
+    <div class="ab-row" id="basic-ab-row">
+      <span class="ab-label">α/β (Gy)：</span>
+      <button class="ab-btn" onclick="setAB('basic',10,this)">腫瘍 (10)</button>
+      <button class="ab-btn" onclick="setAB('basic',3,this)">晩期組織 (3)</button>
+      <button class="ab-btn" onclick="setAB('basic',1.5,this)">前立腺 (1.5)</button>
+      <button class="ab-btn" onclick="setAB('basic',4,this)">乳癌 (4)</button>
+      <div class="ab-custom-wrap">
+        <input type="number" id="basic-ab-custom" placeholder="カスタム" step="0.1" min="0.1"
+               oninput="setABCustom('basic',this.value)">
+        <span>Gy</span>
+      </div>
+    </div>
+
+    <!-- 3 inputs -->
+    <div class="input-row">
+      <div class="field-group">
+        <label>総線量 D (Gy)</label>
+        <input type="number" id="basic-D" placeholder="例: 70" step="0.1" min="0"
+               oninput="onFieldInput('basic','D')">
+        <span class="calc-badge" id="basic-D-badge">計算値</span>
+      </div>
+      <div class="field-group">
+        <label>1回線量 d (Gy)</label>
+        <input type="number" id="basic-d" placeholder="例: 2.0" step="0.01" min="0"
+               oninput="onFieldInput('basic','d')">
+        <span class="calc-badge" id="basic-d-badge">計算値</span>
+      </div>
+      <div class="field-group">
+        <label>分割回数 n</label>
+        <input type="number" id="basic-n" placeholder="例: 35" step="1" min="1"
+               oninput="onFieldInput('basic','n')">
+        <span class="calc-badge" id="basic-n-badge">計算値</span>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="result-row">
+      <div class="result-box bed">
+        <div class="rlabel">BED</div>
+        <div class="rval" id="basic-BED">—<span class="runit"></span></div>
+        <div style="font-size:0.72rem;color:#a0aec0;margin-top:4px">Biological Effective Dose</div>
+      </div>
+      <div class="result-box eqd2">
+        <div class="rlabel">EQD2</div>
+        <div class="rval" id="basic-EQD2">—<span class="runit"></span></div>
+        <div style="font-size:0.72rem;color:#a0aec0;margin-top:4px">Equivalent Dose in 2 Gy fractions</div>
+      </div>
+    </div>
+    <div class="formula-hint">
+      BED = D × (1 + d / α/β)　　　EQD2 = D × (d + α/β) / (2 + α/β)
+    </div>
+  </div>
+
+  <!-- ========== ② レジメン比較 ========== -->
+  <div class="card">
+    <div class="card-title">
+      <span class="section-num">2</span>
+      レジメン比較
+    </div>
+
+    <div class="compare-grid">
+      <!-- Panel A -->
+      <div class="compare-panel panel-a">
+        <h3>レジメン A</h3>
+        <div class="ab-row ab-row-sm" id="cmpA-ab-row">
+          <span class="ab-label" style="font-size:0.72rem">α/β：</span>
+          <button class="ab-btn" onclick="setAB('cmpA',10,this)">10</button>
+          <button class="ab-btn" onclick="setAB('cmpA',3,this)">3</button>
+          <button class="ab-btn" onclick="setAB('cmpA',1.5,this)">1.5</button>
+          <button class="ab-btn" onclick="setAB('cmpA',4,this)">4</button>
+          <div class="ab-custom-wrap">
+            <input type="number" id="cmpA-ab-custom" placeholder="他" step="0.1" min="0.1"
+                   oninput="setABCustom('cmpA',this.value)">
+            <span style="font-size:0.7rem">Gy</span>
+          </div>
+        </div>
+        <div class="cmp-inputs">
+          <div class="field-group">
+            <label>総線量 D (Gy)</label>
+            <input type="number" id="cmpA-D" placeholder="例: 70" step="0.1" oninput="onFieldInput('cmpA','D')">
+            <span class="calc-badge" id="cmpA-D-badge">計算値</span>
+          </div>
+          <div class="field-group">
+            <label>1回線量 d (Gy)</label>
+            <input type="number" id="cmpA-d" placeholder="例: 2.0" step="0.01" oninput="onFieldInput('cmpA','d')">
+            <span class="calc-badge" id="cmpA-d-badge">計算値</span>
+          </div>
+          <div class="field-group">
+            <label>分割回数 n</label>
+            <input type="number" id="cmpA-n" placeholder="例: 35" step="1" oninput="onFieldInput('cmpA','n')">
+            <span class="calc-badge" id="cmpA-n-badge">計算値</span>
+          </div>
+        </div>
+        <div class="cmp-result-row">
+          <span class="cmp-rlabel">BED</span>
+          <span class="cmp-rval" id="cmpA-BED" style="color:#2b6cb0">—</span>
+        </div>
+        <div class="cmp-result-row">
+          <span class="cmp-rlabel">EQD2</span>
+          <span class="cmp-rval" id="cmpA-EQD2" style="color:#2b6cb0">—</span>
+        </div>
+      </div>
+
+      <!-- Panel B -->
+      <div class="compare-panel panel-b">
+        <h3>レジメン B</h3>
+        <div class="ab-row ab-row-sm" id="cmpB-ab-row">
+          <span class="ab-label" style="font-size:0.72rem">α/β：</span>
+          <button class="ab-btn" onclick="setAB('cmpB',10,this)">10</button>
+          <button class="ab-btn" onclick="setAB('cmpB',3,this)">3</button>
+          <button class="ab-btn" onclick="setAB('cmpB',1.5,this)">1.5</button>
+          <button class="ab-btn" onclick="setAB('cmpB',4,this)">4</button>
+          <div class="ab-custom-wrap">
+            <input type="number" id="cmpB-ab-custom" placeholder="他" step="0.1" min="0.1"
+                   oninput="setABCustom('cmpB',this.value)">
+            <span style="font-size:0.7rem">Gy</span>
+          </div>
+        </div>
+        <div class="cmp-inputs">
+          <div class="field-group">
+            <label>総線量 D (Gy)</label>
+            <input type="number" id="cmpB-D" placeholder="例: 60" step="0.1" oninput="onFieldInput('cmpB','D')">
+            <span class="calc-badge" id="cmpB-D-badge">計算値</span>
+          </div>
+          <div class="field-group">
+            <label>1回線量 d (Gy)</label>
+            <input type="number" id="cmpB-d" placeholder="例: 3.0" step="0.01" oninput="onFieldInput('cmpB','d')">
+            <span class="calc-badge" id="cmpB-d-badge">計算値</span>
+          </div>
+          <div class="field-group">
+            <label>分割回数 n</label>
+            <input type="number" id="cmpB-n" placeholder="例: 20" step="1" oninput="onFieldInput('cmpB','n')">
+            <span class="calc-badge" id="cmpB-n-badge">計算値</span>
+          </div>
+        </div>
+        <div class="cmp-result-row">
+          <span class="cmp-rlabel">BED</span>
+          <span class="cmp-rval" id="cmpB-BED" style="color:#276749">—</span>
+        </div>
+        <div class="cmp-result-row">
+          <span class="cmp-rlabel">EQD2</span>
+          <span class="cmp-rval" id="cmpB-EQD2" style="color:#276749">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diff bar -->
+    <div class="diff-bar">
+      <div class="diff-item">
+        <div class="diff-dlabel">BED差（A − B）</div>
+        <div class="diff-dval diff-zero" id="diff-bed">—</div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-dlabel">EQD2差（A − B）</div>
+        <div class="diff-dval diff-zero" id="diff-eqd2">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ③ Advanced ========== -->
+  <div class="card">
+    <button class="adv-toggle-btn" onclick="toggleAdv()">
+      <div class="card-title" style="margin:0;padding:0;border:none;pointer-events:none">
+        <span class="section-num">3</span>
+        Advanced（逆算）
+      </div>
+      <span class="adv-chevron" id="adv-chevron">▼</span>
+    </button>
+
+    <div class="adv-body" id="adv-body" style="display:none">
+
+      <!-- Advanced α/β（独立） -->
+      <div class="ab-row" id="adv-ab-row" style="margin-top:4px">
+        <span class="ab-label">α/β (Gy)：</span>
+        <button class="ab-btn" onclick="setAB('adv',10,this)">腫瘍 (10)</button>
+        <button class="ab-btn" onclick="setAB('adv',3,this)">晩期組織 (3)</button>
+        <button class="ab-btn" onclick="setAB('adv',1.5,this)">前立腺 (1.5)</button>
+        <button class="ab-btn" onclick="setAB('adv',4,this)">乳癌 (4)</button>
+        <div class="ab-custom-wrap">
+          <input type="number" id="adv-ab-custom" placeholder="カスタム" step="0.1" min="0.1"
+                 oninput="setABCustom('adv',this.value)">
+          <span>Gy</span>
+        </div>
+      </div>
+
+      <!-- 逆算① -->
+      <div class="adv-section">
+        <h4>逆算①　目標 EQD2 ＋ 1回線量 → 分割回数・総線量を求める</h4>
+        <div class="adv-input-row">
+          <div class="field-group">
+            <label>目標 EQD2 (Gy)</label>
+            <input type="number" id="adv1-eqd2" placeholder="例: 74" step="0.1" min="0">
+          </div>
+          <div class="field-group">
+            <label>1回線量 d (Gy)</label>
+            <input type="number" id="adv1-d" placeholder="例: 2.0" step="0.01" min="0">
+          </div>
+        </div>
+        <button class="btn-calc" onclick="calcAdv1()">計算する</button>
+        <div class="adv-result" id="adv1-result">
+          <div class="adv-result-item">
+            <div class="adv-rlabel">分割回数 n</div>
+            <div class="adv-rval" id="adv1-n">—</div>
+          </div>
+          <div class="adv-result-item">
+            <div class="adv-rlabel">総線量 D (Gy)</div>
+            <div class="adv-rval" id="adv1-D">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 逆算② -->
+      <div class="adv-section">
+        <h4>逆算②　目標 EQD2 ＋ 分割回数 → 1回線量・総線量を求める</h4>
+        <div class="adv-input-row">
+          <div class="field-group">
+            <label>目標 EQD2 (Gy)</label>
+            <input type="number" id="adv2-eqd2" placeholder="例: 74" step="0.1" min="0">
+          </div>
+          <div class="field-group">
+            <label>分割回数 n</label>
+            <input type="number" id="adv2-n" placeholder="例: 28" step="1" min="1">
+          </div>
+        </div>
+        <button class="btn-calc" onclick="calcAdv2()">計算する</button>
+        <div class="adv-result" id="adv2-result">
+          <div class="adv-result-item">
+            <div class="adv-rlabel">1回線量 d (Gy)</div>
+            <div class="adv-rval" id="adv2-d">—</div>
+          </div>
+          <div class="adv-result-item">
+            <div class="adv-rlabel">総線量 D (Gy)</div>
+            <div class="adv-rval" id="adv2-D">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        ※ 逆算結果は数学的な解です。実際の処方線量は物理的・臨床的制約を考慮した上で、放射線腫瘍医が判断してください。
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Linear-Quadratic モデル　BED = D × (1 + d / α/β)　　EQD2 = D × (d + α/β) / (2 + α/β)<br>
+  本ツールは参考値の提供を目的としており、実際の治療計画は放射線腫瘍医の判断のもとで行ってください。
+</footer>
+
+<script>
+// ============================================================
+// State
+// ============================================================
+const S = {
+  basic: { ab: null, lastEdited: [] },
+  cmpA:  { ab: null, lastEdited: [] },
+  cmpB:  { ab: null, lastEdited: [] },
+  adv:   { ab: null },
+};
+
+const FIELDS = ['D', 'd', 'n'];
+
+// ============================================================
+// α/β
+// ============================================================
+function setAB(ctx, val, btn) {
+  S[ctx].ab = val;
+  // Clear custom input if preset selected
+  const ci = document.getElementById(ctx + '-ab-custom');
+  if (ci) ci.value = '';
+  // Toggle active state
+  const row = document.getElementById(ctx + '-ab-row');
+  row.querySelectorAll('.ab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  recalc(ctx);
+}
+
+function setABCustom(ctx, val) {
+  const v = parseFloat(val);
+  if (isNaN(v) || v <= 0) return;
+  S[ctx].ab = v;
+  const row = document.getElementById(ctx + '-ab-row');
+  row.querySelectorAll('.ab-btn').forEach(b => b.classList.remove('active'));
+  recalc(ctx);
+}
+
+// ============================================================
+// Flexible 3-field input (any 2 → calculate third)
+// ============================================================
+function onFieldInput(ctx, field) {
+  const s = S[ctx];
+  // Update lastEdited (keep max 2, most recent first)
+  s.lastEdited = s.lastEdited.filter(f => f !== field);
+  s.lastEdited.unshift(field);
+  if (s.lastEdited.length > 2) s.lastEdited.length = 2;
+
+  if (s.lastEdited.length === 2) {
+    const [f1, f2] = s.lastEdited;
+    const v1 = parseFloat(getEl(ctx, f1).value);
+    const v2 = parseFloat(getEl(ctx, f2).value);
+    const calcF = FIELDS.find(f => !s.lastEdited.includes(f));
+
+    if (!isNaN(v1) && !isNaN(v2) && v1 > 0 && v2 > 0 && calcF) {
+      let cv = null;
+      if (calcF === 'D') cv = v1 * v2;           // d*n or n*d
+      if (calcF === 'd') {                        // D/n
+        const D = f1 === 'D' ? v1 : v2;
+        const n = f1 === 'n' ? v1 : v2;
+        cv = D / n;
+      }
+      if (calcF === 'n') {                        // D/d
+        const D = f1 === 'D' ? v1 : v2;
+        const d = f1 === 'd' ? v1 : v2;
+        cv = D / d;
+      }
+
+      if (cv !== null && cv > 0) {
+        const dec = calcF === 'n' ? 2 : (calcF === 'd' ? 3 : 2);
+        getEl(ctx, calcF).value = round(cv, dec);
+        getEl(ctx, calcF).classList.add('calculated');
+        getBadge(ctx, calcF).style.display = 'block';
+
+        // Remove calculated style from user-edited fields
+        [f1, f2].forEach(f => {
+          getEl(ctx, f).classList.remove('calculated');
+          getBadge(ctx, f).style.display = 'none';
+        });
+      }
+    }
+  }
+
+  recalc(ctx);
+}
+
+function getEl(ctx, field)   { return document.getElementById(ctx + '-' + field); }
+function getBadge(ctx, field){ return document.getElementById(ctx + '-' + field + '-badge'); }
+
+// ============================================================
+// Core math
+// ============================================================
+function bed(D, d, ab)  { return D * (1 + d / ab); }
+function eqd2(D, d, ab) { return D * (d + ab) / (2 + ab); }
+
+function round(v, dec) {
+  const m = Math.pow(10, dec);
+  return Math.round(v * m) / m;
+}
+
+function fmt(v, dec) {
+  if (isNaN(v) || !isFinite(v) || v < 0) return '—';
+  return round(v, dec).toFixed(dec);
+}
+
+// ============================================================
+// Recalc dispatchers
+// ============================================================
+function recalc(ctx) {
+  if (ctx === 'basic')          calcBasic();
+  else if (ctx === 'cmpA' || ctx === 'cmpB') calcCompare();
+}
+
+function getInputs(ctx) {
+  return {
+    D:  parseFloat(getEl(ctx, 'D').value),
+    d:  parseFloat(getEl(ctx, 'd').value),
+    ab: S[ctx].ab,
+  };
+}
+
+// ---- Basic ----
+function calcBasic() {
+  const { D, d, ab } = getInputs('basic');
+  const ok = ab && !isNaN(D) && !isNaN(d) && D > 0 && d > 0;
+  document.getElementById('basic-BED').textContent  = ok ? fmt(bed(D,d,ab),2)  + ' Gy' : '—';
+  document.getElementById('basic-EQD2').textContent = ok ? fmt(eqd2(D,d,ab),2) + ' Gy' : '—';
+}
+
+// ---- Compare ----
+function calcCompare() {
+  const a = getInputs('cmpA');
+  const b = getInputs('cmpB');
+
+  const okA = a.ab && !isNaN(a.D) && !isNaN(a.d) && a.D > 0 && a.d > 0;
+  const okB = b.ab && !isNaN(b.D) && !isNaN(b.d) && b.D > 0 && b.d > 0;
+
+  const bedA  = okA ? bed(a.D, a.d, a.ab)  : NaN;
+  const eqd2A = okA ? eqd2(a.D, a.d, a.ab) : NaN;
+  const bedB  = okB ? bed(b.D, b.d, b.ab)  : NaN;
+  const eqd2B = okB ? eqd2(b.D, b.d, b.ab) : NaN;
+
+  document.getElementById('cmpA-BED').textContent  = okA ? fmt(bedA,2)  + ' Gy' : '—';
+  document.getElementById('cmpA-EQD2').textContent = okA ? fmt(eqd2A,2) + ' Gy' : '—';
+  document.getElementById('cmpB-BED').textContent  = okB ? fmt(bedB,2)  + ' Gy' : '—';
+  document.getElementById('cmpB-EQD2').textContent = okB ? fmt(eqd2B,2) + ' Gy' : '—';
+
+  const diffBedEl  = document.getElementById('diff-bed');
+  const diffEqd2El = document.getElementById('diff-eqd2');
+
+  if (okA && okB) {
+    const db = bedA - bedB;
+    const de = eqd2A - eqd2B;
+    diffBedEl.textContent  = (db  >= 0 ? '+' : '') + fmt(db,2)  + ' Gy';
+    diffEqd2El.textContent = (de >= 0 ? '+' : '') + fmt(de,2) + ' Gy';
+    diffBedEl.className  = 'diff-dval ' + cls(db);
+    diffEqd2El.className = 'diff-dval ' + cls(de);
+  } else {
+    diffBedEl.textContent  = '—';
+    diffEqd2El.textContent = '—';
+    diffBedEl.className  = 'diff-dval diff-zero';
+    diffEqd2El.className = 'diff-dval diff-zero';
+  }
+}
+
+function cls(v) {
+  if (v > 0.005) return 'diff-pos';
+  if (v < -0.005) return 'diff-neg';
+  return 'diff-zero';
+}
+
+// ============================================================
+// Advanced toggle
+// ============================================================
+function toggleAdv() {
+  const body    = document.getElementById('adv-body');
+  const chevron = document.getElementById('adv-chevron');
+  const open    = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  chevron.classList.toggle('open', open);
+}
+
+// ============================================================
+// Advanced reverse calc
+// ============================================================
+function getAdvAB() {
+  if (!S.adv.ab) { alert('α/β を選択してください。'); return null; }
+  return S.adv.ab;
+}
+
+// 逆算①: 目標EQD2 + d → n, D
+// n = EQD2 × (2 + ab) / (d × (d + ab))
+function calcAdv1() {
+  const ab   = getAdvAB(); if (!ab) return;
+  const eqd2v = parseFloat(document.getElementById('adv1-eqd2').value);
+  const dv    = parseFloat(document.getElementById('adv1-d').value);
+  if (isNaN(eqd2v) || isNaN(dv) || eqd2v <= 0 || dv <= 0) {
+    alert('目標EQD2と1回線量を入力してください。'); return;
+  }
+  const n = eqd2v * (2 + ab) / (dv * (dv + ab));
+  const D = n * dv;
+  document.getElementById('adv1-n').textContent = fmt(n,2) + '（≈ ' + Math.round(n) + ' 回）';
+  document.getElementById('adv1-D').textContent = fmt(D,2) + ' Gy';
+  document.getElementById('adv1-result').style.display = 'grid';
+}
+
+// 逆算②: 目標EQD2 + n → d, D
+// n·d² + n·ab·d − EQD2·(2+ab) = 0
+// d = (−n·ab + √((n·ab)² + 4·n·EQD2·(2+ab))) / (2·n)
+function calcAdv2() {
+  const ab    = getAdvAB(); if (!ab) return;
+  const eqd2v = parseFloat(document.getElementById('adv2-eqd2').value);
+  const nv    = parseFloat(document.getElementById('adv2-n').value);
+  if (isNaN(eqd2v) || isNaN(nv) || eqd2v <= 0 || nv <= 0) {
+    alert('目標EQD2と分割回数を入力してください。'); return;
+  }
+  const disc = Math.pow(nv * ab, 2) + 4 * nv * eqd2v * (2 + ab);
+  const dv   = (-nv * ab + Math.sqrt(disc)) / (2 * nv);
+  const D    = nv * dv;
+  document.getElementById('adv2-d').textContent = fmt(dv,3) + ' Gy / 回';
+  document.getElementById('adv2-D').textContent = fmt(D,2)  + ' Gy';
+  document.getElementById('adv2-result').style.display = 'grid';
+}
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js');
+    });
+  }
+</script>
+</body>
+</html>
