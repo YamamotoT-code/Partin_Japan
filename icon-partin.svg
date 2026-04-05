@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#1a3a5c"/>
+  <text x="256" y="180" font-family="Arial,sans-serif" font-size="100" font-weight="bold"
+        fill="white" text-anchor="middle">Partin</text>
+  <line x1="60" y1="220" x2="452" y2="220" stroke="#2b6cb0" stroke-width="6"/>
+  <text x="256" y="310" font-family="Arial,sans-serif" font-size="72" font-weight="bold"
+        fill="#90cdf4" text-anchor="middle">Japan</text>
+  <text x="256" y="390" font-family="Arial,sans-serif" font-size="52"
+        fill="#63b3ed" text-anchor="middle">前立腺癌</text>
+</svg>

@@ -1,5 +1,8 @@
-const CACHE = 'bed-eqd2-v1';
+const CACHE = 'prostools-v2';
 const FILES = [
+  './index.html',
+  './manifest-partin.json',
+  './icon-partin.svg',
   './bed-eqd2-calculator.html',
   './manifest.json',
   './icon.svg'
