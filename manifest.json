@@ -1,8 +1,10 @@
 {
+  "id": "/Partin_Japan/bed-eqd2-calculator.html",
   "name": "BED / EQD2 計算ツール",
   "short_name": "BED EQD2",
   "description": "放射線治療のBED・EQD2をLinear-Quadraticモデルで計算するツール",
-  "start_url": "./bed-eqd2-calculator.html",
+  "start_url": "/Partin_Japan/bed-eqd2-calculator.html",
+  "scope": "/Partin_Japan/bed-eqd2-calculator.html",
   "display": "standalone",
   "background_color": "#f0f4f8",
   "theme_color": "#1a3a5c",

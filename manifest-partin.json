@@ -1,8 +1,10 @@
 {
+  "id": "/Partin_Japan/index.html",
   "name": "Partin Tables Japan（前立腺癌）",
   "short_name": "Partin Japan",
   "description": "日本版Partin Tablesによる前立腺癌の病理病期・NCCNリスク予測ツール",
-  "start_url": "./index.html",
+  "start_url": "/Partin_Japan/index.html",
+  "scope": "/Partin_Japan/index.html",
   "display": "standalone",
   "background_color": "#f0f4f8",
   "theme_color": "#1a3a5c",

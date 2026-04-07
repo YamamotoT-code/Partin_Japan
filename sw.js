@@ -1,4 +1,4 @@
-const CACHE = 'prostools-v2';
+const CACHE = 'prostools-v3';
 const FILES = [
   './index.html',
   './manifest-partin.json',
