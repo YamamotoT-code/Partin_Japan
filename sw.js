@@ -1,11 +1,9 @@
-const CACHE = 'prostools-v3';
+const CACHE = 'partin-japan-v1';
 const FILES = [
+  './',
   './index.html',
   './manifest-partin.json',
-  './icon-partin.svg',
-  './bed-eqd2-calculator.html',
-  './manifest.json',
-  './icon.svg'
+  './icon-partin.svg'
 ];
 
 self.addEventListener('install', e => {
