@@ -233,6 +233,8 @@
           <option value="T2a">T2a（片葉 ≤1/2）</option>
           <option value="T2b">T2b（片葉 >1/2）</option>
           <option value="T2c">T2c（両葉）</option>
+          <option value="T3a">T3a（被膜外浸潤）</option>
+          <option value="T3b">T3b（精嚢浸潤）</option>
         </select>
       </div>
       <div class="form-group">
@@ -277,6 +279,18 @@
     <hr class="divider">
 
     <!-- Partin 確率 -->
+    <div id="partin-section">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <span style="font-size:0.82rem;font-weight:700;color:#2d3748">Partin Tables 病期予測確率</span>
+      <span style="background:#edf2f7;color:#718096;border-radius:4px;padding:2px 8px;font-size:0.72rem;white-space:nowrap">適応：cT1c〜T2c（T3以上は対象外）</span>
+    </div>
+
+    <div id="partin-na" style="display:none;background:#fff8f0;border:1px solid #ed8936;border-radius:8px;padding:14px 16px;color:#7b341e;font-size:0.88rem;margin-bottom:8px">
+      ⚠️ T3ステージはPartin Tablesの適応外のため、病期予測確率は表示されません。<br>
+      <span style="font-size:0.78rem;color:#9c4221">（Partin Tablesの対象はcT1c〜T2c）</span>
+    </div>
+
+    <div id="partin-bars">
     <div class="result-item">
       <div class="result-header">
         <div class="result-label">Organ Confined Disease（OCD）<span>臓器限局</span></div>
@@ -319,11 +333,13 @@
       <div class="result-ci" id="lni-ci"></div>
     </div>
 
+    </div><!-- /partin-bars -->
     <div class="warning-box">
       ※ Partin確率は論文掲載のルックアップテーブル（Table 3〜6）に基づきます。GS 8とGS 9〜10は同一バケット（≥8）を使用。<br>
       ※ PSA ≤ 4.0 ng/mL の場合、LNI 確率は論文で報告されていません。<br>
       ※ NCCNリスク分類はv5.2026に基づきます。PSA ≥ 10.1 ng/mL は閾値をまたぐため条件付き表示となります。
     </div>
+    </div><!-- /partin-section -->
   </div>
 
 </div>
@@ -482,23 +498,49 @@ const GS_LABEL    = { le6:'≤ 6（GG1）', '7_34':'7(3+4)（GG2）', '7_43':'7(
 function getNccnRisk(stage, psa, gs) {
   const psaLow  = psa !== 'ge10';
   const psaHigh = psa === 'ge10';
-  const stageIRF = stage === 'T2b' || stage === 'T2c';
+  const stageHR  = stage === 'T3a' || stage === 'T3b'; // High risk criterion
+  const stageIRF = stage === 'T2b' || stage === 'T2c'; // Intermediate risk factor
   const gg = { le6:1, '7_34':2, '7_43':3, '8':4, '9_10':5 }[gs];
-  const ggLabel = `Grade Group ${gg}`;
+  const ggLabel = 'Grade Group ' + gg;
 
-  // ── High risk criterion: GG4 or GG5 ──
+  // ── T3a / T3b（High risk criterion） ──
+  if (stageHR) {
+    if (gg >= 4) {
+      // T3 + GG4/5 = 2基準 → Very High
+      return {
+        label: 'Very High', color: '#553c9a', bg: '#faf5ff', border: '#b794f4',
+        sub: stage + ' + GG' + gg + ' = 2基準（cT3-T4 + GG4/5）→ Very High',
+        gg: ggLabel
+      };
+    }
+    if (psaHigh) {
+      // T3 + PSA≥10.1（PSA>40なら2基準）
+      return {
+        label: 'High / Very High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
+        sub: stage + ' = High risk criterion\nPSA >40 の場合 Very High（' + stage + ' + PSA>40 = 2基準）',
+        gg: ggLabel
+      };
+    }
+    // T3 + GG1-3 + PSA<10 → High（1基準）
+    return {
+      label: 'High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
+      sub: stage + ' = High risk criterion（1基準）',
+      gg: ggLabel
+    };
+  }
+
+  // ── T1c/T2: GG4 or GG5（High risk criterion） ──
   if (gg >= 4) {
     if (psaHigh) {
       return {
-        label: 'High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
-        sub: 'Very High の可能性あり（PSA >40 かつ GG' + gg + ' の場合、2基準が重複）',
+        label: 'High / Very High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
+        sub: 'GG' + gg + ' = High risk criterion\nPSA >40 の場合 Very High（GG' + gg + ' + PSA>40 = 2基準）',
         gg: ggLabel
       };
     }
     return {
       label: 'High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
-      sub: gg === 5 ? 'GG5 = High risk criterion（Very Highには高PSAまたはcT3-T4が必要）'
-                   : 'GG4 = High risk criterion',
+      sub: 'GG' + gg + ' = High risk criterion（1基準）',
       gg: ggLabel
     };
   }
@@ -508,7 +550,7 @@ function getNccnRisk(stage, psa, gs) {
     if (psaHigh) {
       return {
         label: 'Intermediate Unfavorable', color: '#c05621', bg: '#fffaf0', border: '#f6ad55',
-        sub: 'GG3 は常に Unfavorable / High risk の可能性あり（PSA >20 の場合）',
+        sub: 'GG3 は陽性コア数に関わらず Unfavorable\nPSA >20 の場合 High risk',
         gg: ggLabel
       };
     }
@@ -519,8 +561,8 @@ function getNccnRisk(stage, psa, gs) {
     };
   }
 
-  // ── GG1 or GG2 ──
-  const gsIRF = gg === 2;
+  // ── GG1 or GG2（T1c/T2） ──
+  const gsIRF   = gg === 2;
   const knownIRF = (stageIRF ? 1 : 0) + (gsIRF ? 1 : 0);
 
   if (psaLow) {
@@ -538,7 +580,6 @@ function getNccnRisk(stage, psa, gs) {
         gg: ggLabel
       };
     }
-    // knownIRF === 2: Stage IRF + GG2
     return {
       label: 'Intermediate Unfavorable', color: '#c05621', bg: '#fffaf0', border: '#f6ad55',
       sub: 'IRF 2つ（Stage + GG2）',
@@ -574,16 +615,17 @@ function calculate() {
     return;
   }
 
-  // Partinデータ取得（GS8/9-10は同じバケット）
-  const dataKey = GS_DATA_KEY[gs];
-  const d = DATA[stage][psa][dataKey];
+  const isT3 = stage === 'T3a' || stage === 'T3b';
 
   // サマリー
+  let summaryNote = '';
+  if (!isT3 && (gs === '8' || gs === '9_10')) {
+    summaryNote = '<br><span style="font-size:0.78rem;color:#718096">※ GS 8とGS 9〜10はPartin確率が同一バケット（≥8）のため同値です</span>';
+  }
   document.getElementById('summary-box').innerHTML =
     '<strong>入力値：</strong> Stage <strong>' + STAGE_LABEL[stage] +
     '</strong>　PSA <strong>' + PSA_LABEL[psa] +
-    '</strong>　GS <strong>' + GS_LABEL[gs] + '</strong>' +
-    ((gs === '8' || gs === '9_10') ? '<br><span style="font-size:0.78rem;color:#718096">※ GS 8とGS 9〜10はPartin確率が同一バケット（≥8）のため同値です</span>' : '');
+    '</strong>　GS <strong>' + GS_LABEL[gs] + '</strong>' + summaryNote;
 
   // NCCN リスク
   const nccn = getNccnRisk(stage, psa, gs);
@@ -596,15 +638,24 @@ function calculate() {
   document.getElementById('nccn-gg').textContent = nccn.gg;
 
   // Partin 確率表示
-  setResult('ocd', d.OCD);
-  setResult('epe', d.EPE);
-  setResult('svi', d.SVI);
-  if (d.LNI === null) {
-    document.getElementById('lni-pct').textContent = '—';
-    document.getElementById('lni-ci').innerHTML = '<span class="na-box">PSA ≤ 4.0 ng/mL では報告なし</span>';
-    document.getElementById('lni-bar').style.width = '0%';
+  if (isT3) {
+    document.getElementById('partin-na').style.display = 'block';
+    document.getElementById('partin-bars').style.display = 'none';
   } else {
-    setResult('lni', d.LNI);
+    document.getElementById('partin-na').style.display = 'none';
+    document.getElementById('partin-bars').style.display = 'block';
+    const dataKey = GS_DATA_KEY[gs];
+    const d = DATA[stage][psa][dataKey];
+    setResult('ocd', d.OCD);
+    setResult('epe', d.EPE);
+    setResult('svi', d.SVI);
+    if (d.LNI === null) {
+      document.getElementById('lni-pct').textContent = '—';
+      document.getElementById('lni-ci').innerHTML = '<span class="na-box">PSA ≤ 4.0 ng/mL では報告なし</span>';
+      document.getElementById('lni-bar').style.width = '0%';
+    } else {
+      setResult('lni', d.LNI);
+    }
   }
 
   const rc = document.getElementById('result-card');
