@@ -87,14 +87,14 @@
     footer { background:#2d3748; color:#a0aec0; text-align:center; padding:18px; font-size:0.73rem; line-height:1.8; }
   </style>
 </head>
-<body>
+<body onload="setLang('en')">
 
 <header>
   <h1 data-i18n="h1">前立腺癌 Partin Tables 計算ツール</h1>
   <p data-i18n="headerSub">日本版（Naito 2008）・Hopkins版（Tosoian 2016）・NCCN v5.2026 リスク分類</p>
   <div class="lang-toggle">
-    <button class="lang-btn active" onclick="setLang('jp')">JP</button>
-    <button class="lang-btn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('jp')">JP</button>
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
   </div>
 </header>
 
@@ -273,7 +273,7 @@
 // ============================================================
 // i18n
 // ============================================================
-let lang = 'jp';
+let lang = 'en';
 
 const T = {
   jp: {
