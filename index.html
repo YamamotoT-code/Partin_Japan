@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>前立腺癌 Partin Tables 計算ツール（日本版 + Hopkins版）</title>
+  <title>Prostate Cancer Partin Tables Calculator</title>
   <link rel="manifest" href="manifest-partin.json">
   <meta name="theme-color" content="#1a3a5c">
   <meta name="mobile-web-app-capable" content="yes">
@@ -12,15 +12,18 @@
   <meta name="apple-mobile-web-app-title" content="Partin Japan">
   <link rel="apple-touch-icon" href="icon-partin.svg">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI','Helvetica Neue',Arial,sans-serif; background:#f0f4f8; color:#2d3748; min-height:100vh; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; background:#f0f4f8; color:#2d3748; min-height:100vh; }
 
-    header { background:linear-gradient(135deg,#1a3a5c 0%,#2b6cb0 100%); color:white; padding:28px 24px 22px; text-align:center; }
-    header h1 { font-size:1.45rem; font-weight:700; letter-spacing:0.3px; margin-bottom:6px; }
+    header { background:linear-gradient(135deg,#1a3a5c 0%,#2b6cb0 100%); color:white; padding:28px 24px 22px; text-align:center; position:relative; }
+    header h1 { font-size:1.4rem; font-weight:700; margin-bottom:6px; }
     header p  { font-size:0.82rem; opacity:0.85; }
 
-    .container { max-width:820px; margin:0 auto; padding:24px 16px 48px; }
+    .lang-toggle { position:absolute; top:14px; right:14px; display:flex; gap:4px; }
+    .lang-btn { background:rgba(255,255,255,0.15); color:white; border:1.5px solid rgba(255,255,255,0.45); border-radius:6px; padding:4px 11px; font-size:0.78rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
+    .lang-btn.active { background:white; color:#1a3a5c; border-color:white; }
 
+    .container { max-width:820px; margin:0 auto; padding:24px 16px 48px; }
     .card { background:white; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); padding:24px; margin-bottom:20px; }
     .card h2 { font-size:1rem; font-weight:700; color:#1a3a5c; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #ebf0f7; }
 
@@ -40,10 +43,8 @@
     .btn-calc:hover{ opacity:0.9; } .btn-calc:active{ transform:scale(0.99); }
 
     #result-card { display:none; }
-
     .summary-box { background:#ebf4ff; border-left:4px solid #2b6cb0; border-radius:6px; padding:12px 16px; margin-bottom:20px; font-size:0.88rem; color:#2c4a6e; line-height:1.6; }
 
-    /* NCCN */
     .nccn-box { border-radius:8px; padding:14px 18px; margin-bottom:20px; border-left:5px solid; }
     .nccn-box .nccn-title { font-size:0.72rem; font-weight:700; letter-spacing:0.5px; margin-bottom:4px; opacity:0.7; }
     .nccn-box .nccn-label { font-size:1.15rem; font-weight:800; margin-bottom:4px; }
@@ -52,7 +53,6 @@
 
     .divider { border:none; border-top:1px solid #edf2f7; margin:16px 0; }
 
-    /* Partin two-column layout */
     .partin-cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     @media(max-width:560px){ .partin-cols{ grid-template-columns:1fr; } }
 
@@ -62,7 +62,6 @@
     .col-header .col-sub   { font-size:0.68rem; color:rgba(255,255,255,0.8); margin-top:2px; }
     .naito-header   { background:linear-gradient(135deg,#1a3a5c,#2b6cb0); }
     .hopkins-header { background:linear-gradient(135deg,#822727,#c53030); }
-
     .col-body { padding:12px 14px; }
 
     .result-item-sm { margin-bottom:12px; }
@@ -81,10 +80,9 @@
     .bar-lni{background:linear-gradient(90deg,#6b46c1,#b794f4);}
 
     .table-note { font-size:0.68rem; color:#718096; padding:6px 14px 10px; line-height:1.5; }
-
-    .na-box { font-size:0.82rem; color:#a0aec0; font-style:italic; padding:4px 0; }
-
+    .na-box { font-size:0.82rem; color:#a0aec0; font-style:italic; }
     .warning-box { background:#fffaf0; border-left:4px solid #dd6b20; border-radius:6px; padding:10px 14px; font-size:0.78rem; color:#7b341e; margin-top:14px; line-height:1.6; }
+    .disclaimer-box { background:#fff5f5; border-left:4px solid #c53030; border-radius:6px; padding:10px 14px; font-size:0.78rem; color:#742a2a; margin-top:14px; line-height:1.6; font-weight:500; }
 
     footer { background:#2d3748; color:#a0aec0; text-align:center; padding:18px; font-size:0.73rem; line-height:1.8; }
   </style>
@@ -92,61 +90,65 @@
 <body>
 
 <header>
-  <h1>前立腺癌 Partin Tables 計算ツール</h1>
-  <p>日本版（Naito 2008）・Hopkins版（Tosoian 2016）・NCCN v5.2026 リスク分類</p>
+  <h1 data-i18n="h1">前立腺癌 Partin Tables 計算ツール</h1>
+  <p data-i18n="headerSub">日本版（Naito 2008）・Hopkins版（Tosoian 2016）・NCCN v5.2026 リスク分類</p>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('jp')">JP</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
 </header>
 
 <div class="container">
 
   <div class="card">
-    <h2>術前データ入力</h2>
+    <h2 data-i18n="formTitle">術前データ入力</h2>
     <div class="form-grid">
       <div class="form-group">
-        <label>Clinical Stage</label>
+        <label data-i18n="labelStage">Clinical Stage</label>
         <select id="stage">
-          <option value="">選択してください</option>
-          <option value="T1c">T1c（触知不能）</option>
-          <option value="T2a">T2a（片葉 ≤1/2）</option>
-          <option value="T2b">T2b（片葉 >1/2）</option>
-          <option value="T2c">T2c（両葉）</option>
-          <option value="T3a">T3a（被膜外浸潤）</option>
-          <option value="T3b">T3b（精嚢浸潤）</option>
+          <option value="" data-i18n="selectDefault">選択してください</option>
+          <option value="T1c" data-i18n="stageT1c">T1c（触知不能）</option>
+          <option value="T2a" data-i18n="stageT2a">T2a（片葉 ≤1/2）</option>
+          <option value="T2b" data-i18n="stageT2b">T2b（片葉 >1/2）</option>
+          <option value="T2c" data-i18n="stageT2c">T2c（両葉）</option>
+          <option value="T3a" data-i18n="stageT3a">T3a（被膜外浸潤）</option>
+          <option value="T3b" data-i18n="stageT3b">T3b（精嚢浸潤）</option>
         </select>
       </div>
       <div class="form-group">
-        <label>PSA（ng/mL）</label>
+        <label>PSA (ng/mL)</label>
         <select id="psa">
-          <option value="">選択してください</option>
+          <option value="" data-i18n="selectDefault">選択してください</option>
           <option value="le4">≤ 4.0</option>
-          <option value="4_6">4.1 〜 6.0</option>
-          <option value="6_8">6.1 〜 8.0</option>
-          <option value="8_10">8.1 〜 10.0</option>
-          <option value="10to20">10.1 〜 20.0</option>
-          <option value="20to40">20.1 〜 40.0</option>
+          <option value="4_6">4.1 – 6.0</option>
+          <option value="6_8">6.1 – 8.0</option>
+          <option value="8_10">8.1 – 10.0</option>
+          <option value="10to20">10.1 – 20.0</option>
+          <option value="20to40">20.1 – 40.0</option>
           <option value="gt40">&gt; 40.0</option>
         </select>
       </div>
       <div class="form-group">
         <label>Biopsy Gleason Score</label>
         <select id="gs">
-          <option value="">選択してください</option>
-          <option value="le6">≤ 6（Grade Group 1）</option>
-          <option value="7_34">7（3+4）（Grade Group 2）</option>
-          <option value="7_43">7（4+3）（Grade Group 3）</option>
-          <option value="8">8（Grade Group 4）</option>
-          <option value="9_10">9〜10（Grade Group 5）</option>
+          <option value="" data-i18n="selectDefault">選択してください</option>
+          <option value="le6">≤ 6 (Grade Group 1)</option>
+          <option value="7_34">7 (3+4) (Grade Group 2)</option>
+          <option value="7_43">7 (4+3) (Grade Group 3)</option>
+          <option value="8">8 (Grade Group 4)</option>
+          <option value="9_10">9–10 (Grade Group 5)</option>
         </select>
       </div>
     </div>
-    <button class="btn-calc" onclick="calculate()">病理病期・リスクを予測する</button>
+    <button class="btn-calc" onclick="calculate()" data-i18n="btnCalc">病理病期・リスクを予測する</button>
   </div>
 
   <div class="card" id="result-card">
-    <h2>予測結果</h2>
+    <h2 data-i18n="resultTitle">予測結果</h2>
     <div class="summary-box" id="summary-box"></div>
 
     <div class="nccn-box" id="nccn-box">
-      <div class="nccn-title">NCCN RISK CLASSIFICATION（v5.2026）</div>
+      <div class="nccn-title">NCCN RISK CLASSIFICATION (v5.2026)</div>
       <div class="nccn-label" id="nccn-label">—</div>
       <div class="nccn-sub" id="nccn-sub"></div>
       <div class="nccn-gg" id="nccn-gg"></div>
@@ -156,27 +158,26 @@
 
     <div id="partin-section">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <span style="font-size:0.82rem;font-weight:700;color:#2d3748">Partin Tables 病期予測確率</span>
-        <span style="background:#edf2f7;color:#718096;border-radius:4px;padding:2px 8px;font-size:0.72rem;white-space:nowrap">適応：cT1c〜T2c（T3以上は対象外）</span>
+        <span style="font-size:0.82rem;font-weight:700;color:#2d3748" data-i18n="partinSectionTitle">Partin Tables 病期予測確率</span>
+        <span style="background:#edf2f7;color:#718096;border-radius:4px;padding:2px 8px;font-size:0.72rem;white-space:nowrap" data-i18n="partinApplicable">適応：cT1c〜T2c（T3以上は対象外）</span>
       </div>
 
       <div id="partin-na" style="display:none;background:#fff8f0;border:1px solid #ed8936;border-radius:8px;padding:14px 16px;color:#7b341e;font-size:0.88rem;margin-bottom:8px">
-        ⚠️ T3ステージはPartin Tablesの適応外のため、病期予測確率は表示されません。<br>
-        <span style="font-size:0.78rem;color:#9c4221">（Partin Tablesの対象はcT1c〜T2c）</span>
+        <span data-i18n="t3na">⚠️ T3ステージはPartin Tablesの適応外のため、病期予測確率は表示されません。</span><br>
+        <span style="font-size:0.78rem;color:#9c4221" data-i18n="t3naNote">（Partin Tablesの対象はcT1c〜T2c）</span>
       </div>
 
       <div id="partin-cols" class="partin-cols">
 
-        <!-- 日本版 Naito -->
         <div class="partin-col">
           <div class="col-header naito-header">
-            <div class="col-title">日本版 Partin Tables</div>
+            <div class="col-title" data-i18n="naitoColTitle">日本版 Partin Tables</div>
             <div class="col-sub">Naito et al. J Urol 2008</div>
           </div>
           <div class="col-body">
             <div class="result-item-sm">
               <div class="result-header-sm">
-                <div class="result-label-sm">OCD<span>臓器限局</span></div>
+                <div class="result-label-sm">OCD<span data-i18n="ocdSub">臓器限局</span></div>
                 <div class="result-pct-sm color-ocd" id="naito-ocd-pct"></div>
               </div>
               <div class="bar-track"><div class="bar-fill bar-ocd" id="naito-ocd-bar" style="width:0%"></div></div>
@@ -184,7 +185,7 @@
             </div>
             <div class="result-item-sm">
               <div class="result-header-sm">
-                <div class="result-label-sm">EPE<span>前立腺外浸潤</span></div>
+                <div class="result-label-sm">EPE<span data-i18n="epeSub">前立腺外浸潤</span></div>
                 <div class="result-pct-sm color-epe" id="naito-epe-pct"></div>
               </div>
               <div class="bar-track"><div class="bar-fill bar-epe" id="naito-epe-bar" style="width:0%"></div></div>
@@ -192,7 +193,7 @@
             </div>
             <div class="result-item-sm">
               <div class="result-header-sm">
-                <div class="result-label-sm">SVI<span>精嚢浸潤</span></div>
+                <div class="result-label-sm">SVI<span data-i18n="sviSub">精嚢浸潤</span></div>
                 <div class="result-pct-sm color-svi" id="naito-svi-pct"></div>
               </div>
               <div class="bar-track"><div class="bar-fill bar-svi" id="naito-svi-bar" style="width:0%"></div></div>
@@ -200,7 +201,7 @@
             </div>
             <div class="result-item-sm">
               <div class="result-header-sm">
-                <div class="result-label-sm">LNI<span>リンパ節転移</span></div>
+                <div class="result-label-sm">LNI<span data-i18n="lniSub">リンパ節転移</span></div>
                 <div class="result-pct-sm color-lni" id="naito-lni-pct"></div>
               </div>
               <div class="bar-track"><div class="bar-fill bar-lni" id="naito-lni-bar" style="width:0%"></div></div>
@@ -210,16 +211,15 @@
           <div class="table-note" id="naito-note"></div>
         </div>
 
-        <!-- Hopkins版 Tosoian -->
         <div class="partin-col">
           <div class="col-header hopkins-header">
-            <div class="col-title">Hopkins版 Partin Tables</div>
+            <div class="col-title" data-i18n="hopkinsColTitle">Hopkins版 Partin Tables</div>
             <div class="col-sub">Tosoian et al. BJU Int 2017</div>
           </div>
           <div class="col-body">
             <div class="result-item-sm">
               <div class="result-header-sm">
-                <div class="result-label-sm">OC<span>臓器限局</span></div>
+                <div class="result-label-sm">OC<span data-i18n="ocSub">臓器限局</span></div>
                 <div class="result-pct-sm color-ocd" id="hopkins-ocd-pct"></div>
               </div>
               <div class="bar-track"><div class="bar-fill bar-ocd" id="hopkins-ocd-bar" style="width:0%"></div></div>
@@ -227,7 +227,7 @@
             </div>
             <div class="result-item-sm">
               <div class="result-header-sm">
-                <div class="result-label-sm">ECE<span>前立腺外浸潤</span></div>
+                <div class="result-label-sm">ECE<span data-i18n="eceSub">前立腺外浸潤</span></div>
                 <div class="result-pct-sm color-epe" id="hopkins-epe-pct"></div>
               </div>
               <div class="bar-track"><div class="bar-fill bar-epe" id="hopkins-epe-bar" style="width:0%"></div></div>
@@ -235,7 +235,7 @@
             </div>
             <div class="result-item-sm">
               <div class="result-header-sm">
-                <div class="result-label-sm">SV+<span>精嚢浸潤</span></div>
+                <div class="result-label-sm">SV+<span data-i18n="svSub">精嚢浸潤</span></div>
                 <div class="result-pct-sm color-svi" id="hopkins-svi-pct"></div>
               </div>
               <div class="bar-track"><div class="bar-fill bar-svi" id="hopkins-svi-bar" style="width:0%"></div></div>
@@ -243,7 +243,7 @@
             </div>
             <div class="result-item-sm">
               <div class="result-header-sm">
-                <div class="result-label-sm">LN+<span>リンパ節転移</span></div>
+                <div class="result-label-sm">LN+<span data-i18n="lnSub">リンパ節転移</span></div>
                 <div class="result-pct-sm color-lni" id="hopkins-lni-pct"></div>
               </div>
               <div class="bar-track"><div class="bar-fill bar-lni" id="hopkins-lni-bar" style="width:0%"></div></div>
@@ -253,30 +253,138 @@
           <div class="table-note" id="hopkins-note"></div>
         </div>
 
-      </div><!-- /partin-cols -->
-
-      <div class="warning-box">
-        ※ 日本版：Naito 2008 論文 Table 3〜6 のルックアップテーブルに基づきます。PSA ≤4.0 の LNI は報告なし。GS9-10 は GS8 と同一バケット。<br>
-        ※ Hopkins版：Tosoian 2016 Table 2 に基づきます。T2b/T2c は合算データ。GG3（4+3）と GG4（GS8）は合算データ。PSA &gt;10.1 は全て &gt;10 バケット使用。<br>
-        ※ NCCNリスク分類は v5.2026 に基づきます。陽性コア割合（50%前後）が Favorable/Unfavorable の分岐に影響します。
       </div>
+
+      <div class="warning-box" id="warning-box" data-i18n="warning"></div>
+      <div class="disclaimer-box" data-i18n="disclaimer"></div>
     </div>
   </div>
 
 </div>
 
 <footer>
-  日本版：Naito S, et al. <em>J Urol</em> 2008; 180(3): 904-910. PMID: 18635221<br>
-  Hopkins版：Tosoian JJ, et al. <em>BJU Int</em> 2017; 119(5): 676-683. PMID: 27523132<br>
+  <div style="color:#fc8181;font-weight:600;margin-bottom:6px" data-i18n="disclaimerFooter"></div>
+  Japanese version: Naito S, et al. <em>J Urol</em> 2008; 180(3): 904–910. PMID: 18635221<br>
+  Hopkins version: Tosoian JJ, et al. <em>BJU Int</em> 2017; 119(5): 676–683. PMID: 27523132<br>
   NCCN Clinical Practice Guidelines in Oncology® Prostate Cancer Version 5.2026
 </footer>
 
 <script>
 // ============================================================
-// 日本版 Partin データ（Naito 2008, Table 3〜6）
-// [中央値, CI下限, CI上限]  LNI:null = PSA≤4で報告なし
-// PSA keys: le4 / 4_6 / 6_8 / 8_10 / ge10
-// GS  keys: le6 / 7_34 / 7_43 / ge8（GS8とGS9-10共通）
+// i18n
+// ============================================================
+let lang = 'jp';
+
+const T = {
+  jp: {
+    h1:             '前立腺癌 Partin Tables 計算ツール',
+    headerSub:      '日本版（Naito 2008）・Hopkins版（Tosoian 2016）・NCCN v5.2026 リスク分類',
+    formTitle:      '術前データ入力',
+    labelStage:     'Clinical Stage',
+    selectDefault:  '選択してください',
+    stageT1c:'T1c（触知不能）', stageT2a:'T2a（片葉 ≤1/2）', stageT2b:'T2b（片葉 >1/2）',
+    stageT2c:'T2c（両葉）',    stageT3a:'T3a（被膜外浸潤）', stageT3b:'T3b（精嚢浸潤）',
+    btnCalc:        '病理病期・リスクを予測する',
+    resultTitle:    '予測結果',
+    partinSectionTitle: 'Partin Tables 病期予測確率',
+    partinApplicable:   '適応：cT1c〜T2c（T3以上は対象外）',
+    t3na:     '⚠️ T3ステージはPartin Tablesの適応外のため、病期予測確率は表示されません。',
+    t3naNote: '（Partin Tablesの対象はcT1c〜T2c）',
+    naitoColTitle:   '日本版 Partin Tables',
+    hopkinsColTitle: 'Hopkins版 Partin Tables',
+    ocdSub:'臓器限局', epeSub:'前立腺外浸潤', sviSub:'精嚢浸潤', lniSub:'リンパ節転移',
+    ocSub: '臓器限局', eceSub:'前立腺外浸潤', svSub: '精嚢浸潤', lnSub: 'リンパ節転移',
+    notReported: '報告なし',
+    derived:     '（計算値・CI不明）',
+    summaryPrefix: '入力値：',
+    naitoNote10:   'PSA ≥10.1バケットを使用',
+    naitoNoteGS:   'GS9〜10はGS8と同一バケット（≥8）を使用',
+    hopkinsNoteT2bc: 'T2b/cを合算したデータを使用',
+    hopkinsNoteGG34: 'GG3・GG4を合算したデータを使用',
+    hopkinsNote610:  'Hopkins 6.1〜10.0バケットを使用',
+    hopkinsNoteGt10: 'Hopkins >10バケットを使用',
+    warning: '※ 日本版：Naito 2008 Table 3〜6 に基づきます。PSA ≤4.0 の LNI は報告なし。GS 9〜10 は GS 8 と同一バケット。<br>※ Hopkins版：Tosoian 2016 Table 2 に基づきます。T2b/T2c は合算データ。GG3（4+3）と GG4（GS8）は合算データ。<br>※ NCCN v5.2026。陽性コア割合（50%前後）が Favorable/Unfavorable の分岐に影響します。',
+    disclaimer: '⚠️ 本ツールは教育・参考目的のみです。臨床判断は必ず担当医師が行ってください。本ツールの使用による結果について開発者は一切の責任を負いません。',
+    disclaimerFooter: '⚠️ 本ツールは教育・参考目的のみです。臨床判断は必ず担当医師が行ってください。',
+    // NCCN sub-text
+    nVH_T3b:   'cT3b = Very High risk criterion',
+    nVH_GG5:   'GG5 (primary Gleason pattern 5) = Very High risk criterion',
+    nVH_multi:  '高リスク因子 2基準 → Very High Risk',
+    nHigh:      'High risk criterion（1基準）',
+    nUFI_GG3:   'GG3（4+3=7）は陽性コア割合に関わらず Unfavorable Intermediate',
+    nFav_1irf:  '陽性コア <50% → Favorable / ≥50% → Unfavorable',
+    nUFI_multi: 'IRF → Unfavorable Intermediate',
+    nLow:       'cT1c〜T2a・PSA <10 ng/mL・GG1 — すべて低リスク基準を満たす',
+    irf1:       'IRF 1つ：',
+    irfN:       'IRF ',
+    irfNpost:   'つ（',
+    irfNend:    '）',
+    irfPSA:     'PSA 10〜20 ng/mL',
+  },
+  en: {
+    h1:             'Prostate Cancer Partin Tables Calculator',
+    headerSub:      'Japanese Version (Naito 2008) · Hopkins Version (Tosoian 2016) · NCCN v5.2026 Risk Classification',
+    formTitle:      'Preoperative Data Input',
+    labelStage:     'Clinical Stage',
+    selectDefault:  'Please select',
+    stageT1c:'T1c (non-palpable)',      stageT2a:'T2a (unilateral ≤1/2)',
+    stageT2b:'T2b (unilateral >1/2)', stageT2c:'T2c (bilateral)',
+    stageT3a:'T3a (extracapsular extension)', stageT3b:'T3b (seminal vesicle invasion)',
+    btnCalc:        'Predict Pathological Stage & Risk',
+    resultTitle:    'Results',
+    partinSectionTitle: 'Partin Tables — Pathological Stage Probabilities',
+    partinApplicable:   'Applicable: cT1c–T2c (Not applicable for cT3+)',
+    t3na:     '⚠️ cT3 stage is outside the scope of Partin Tables. Pathological stage probabilities are not shown.',
+    t3naNote: '(Partin Tables apply to cT1c–T2c only)',
+    naitoColTitle:   'Japanese Partin Tables',
+    hopkinsColTitle: 'Hopkins Partin Tables',
+    ocdSub:'Organ-Confined',       epeSub:'Extraprostatic Extension',
+    sviSub:'Seminal Vesicle Inv.', lniSub:'Lymph Node Involvement',
+    ocSub: 'Organ-Confined',       eceSub:'Extraprostatic Extension',
+    svSub: 'Seminal Vesicle Inv.', lnSub: 'Lymph Node Involvement',
+    notReported: 'Not reported',
+    derived:     '(derived · CI unknown)',
+    summaryPrefix: 'Input: ',
+    naitoNote10:   'Uses PSA ≥10.1 bucket',
+    naitoNoteGS:   'GS 9–10 uses same bucket as GS 8 (≥8)',
+    hopkinsNoteT2bc: 'Uses combined T2b/T2c data',
+    hopkinsNoteGG34: 'Uses combined GG3/GG4 data',
+    hopkinsNote610:  'Uses Hopkins 6.1–10.0 bucket',
+    hopkinsNoteGt10: 'Uses Hopkins >10 bucket',
+    warning: '※ Japanese version: Based on Naito 2008 Tables 3–6. LNI not reported for PSA ≤4.0. GS 9–10 uses same bucket as GS 8.<br>※ Hopkins version: Based on Tosoian 2016 Table 2. T2b/T2c combined. GG3 (4+3) and GG4 (GS8) combined.<br>※ NCCN v5.2026. Positive core percentage (~50%) affects Favorable/Unfavorable distinction.',
+    disclaimer: '⚠️ This tool is for educational and reference purposes only. Clinical decisions must always be made by qualified medical professionals. The developer assumes no responsibility for any outcomes resulting from the use of this tool.',
+    disclaimerFooter: '⚠️ For educational purposes only. Clinical decisions must be made by qualified medical professionals.',
+    nVH_T3b:   'cT3b = Very High risk criterion',
+    nVH_GG5:   'GG5 (primary Gleason pattern 5) = Very High risk criterion',
+    nVH_multi:  '2 high-risk features → Very High Risk',
+    nHigh:      'High risk criterion (1 criterion)',
+    nUFI_GG3:   'GG3 (4+3=7) = Unfavorable Intermediate regardless of positive core %',
+    nFav_1irf:  '<50% positive cores → Favorable / ≥50% → Unfavorable',
+    nUFI_multi: 'IRFs → Unfavorable Intermediate',
+    nLow:       'cT1–T2a · PSA <10 ng/mL · GG1 — All low-risk criteria met',
+    irf1:       '1 IRF: ',
+    irfN:       '',
+    irfNpost:   ' IRFs (',
+    irfNend:    ')',
+    irfPSA:     'PSA 10–20 ng/mL',
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (T[lang][key] !== undefined) el.innerHTML = T[lang][key];
+  });
+  document.querySelectorAll('.lang-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', (i === 0 && l === 'jp') || (i === 1 && l === 'en'));
+  });
+  document.documentElement.lang = l === 'jp' ? 'ja' : 'en';
+  if (document.getElementById('result-card').style.display !== 'none') calculate();
+}
+
+// ============================================================
+// Partin データ（Naito 2008）
 // ============================================================
 const NAITO = {
   T1c: {
@@ -370,221 +478,127 @@ const NAITO = {
 };
 
 // ============================================================
-// Hopkins版 Partin データ（Tosoian 2016, Table 2）
-// [中央値, CI下限, CI上限]  null = 計算値（CI不明）
-// PSA keys: le4 / 4to6 / 6to10 / gt10
-// GG  keys: GG1 / GG2 / GG34（GG3+GG4合算）/ GG5
-// Stage: T1c / T2a / T2bc（T2b+T2c合算）
+// Hopkins データ（Tosoian 2016）
 // ============================================================
 const HOPKINS = {
   T1c: {
-    le4: {
-      GG1: {OC:[92,90,93],ECE:[8,6,9],  SVI:[1,0,1], LNI:[0,0,0]},
-      GG2: {OC:[77,74,80],ECE:[20,17,23],SVI:[2,1,3], LNI:[1,0,1]},
-      GG34:{OC:[67,62,72],ECE:[24,21,28],SVI:[7,4,10],LNI:[2,1,4]},
-      GG5: {OC:[50,41,57],ECE:[31,24,39],SVI:[13,7,20],LNI:[6,3,11]},
-    },
-    "4to6": {
-      GG1: {OC:[90,89,92],ECE:[9,7,10], SVI:[1,0,1], LNI:[0,0,0]},
-      GG2: {OC:[74,71,77],ECE:[23,20,26],SVI:[2,1,3], LNI:[1,0,1]},
-      GG34:{OC:[64,null,null],ECE:[28,24,31],SVI:[6,4,9],LNI:[2,1,4]},
-      GG5: {OC:[47,39,55],ECE:[35,27,42],SVI:[12,8,19],LNI:[5,2,9]},
-    },
-    "6to10": {
-      GG1: {OC:[87,85,89],ECE:[12,10,14],SVI:[1,1,2], LNI:[0,0,1]},
-      GG2: {OC:[67,63,71],ECE:[28,24,31],SVI:[4,2,6], LNI:[1,0,2]},
-      GG34:{OC:[53,49,58],ECE:[32,27,36],SVI:[11,8,15],LNI:[4,2,6]},
-      GG5: {OC:[35,28,44],ECE:[36,28,44],SVI:[19,12,27],LNI:[9,5,15]},
-    },
-    gt10: {
-      GG1: {OC:[80,75,84],ECE:[17,13,20],SVI:[3,1,4], LNI:[1,0,2]},
-      GG2: {OC:[52,46,58],ECE:[34,29,40],SVI:[8,5,12],LNI:[5,3,8]},
-      GG34:{OC:[35,30,41],ECE:[33,27,39],SVI:[20,14,27],LNI:[11,7,17]},
-      GG5: {OC:[19,13,26],ECE:[30,22,40],SVI:[28,18,38],LNI:[22,13,34]},
-    },
+    le4:   { GG1:{OC:[92,90,93],ECE:[8,6,9],  SVI:[1,0,1], LNI:[0,0,0]}, GG2:{OC:[77,74,80],ECE:[20,17,23],SVI:[2,1,3], LNI:[1,0,1]}, GG34:{OC:[67,62,72],ECE:[24,21,28],SVI:[7,4,10],LNI:[2,1,4]}, GG5:{OC:[50,41,57],ECE:[31,24,39],SVI:[13,7,20],LNI:[6,3,11]} },
+    "4to6":{ GG1:{OC:[90,89,92],ECE:[9,7,10], SVI:[1,0,1], LNI:[0,0,0]}, GG2:{OC:[74,71,77],ECE:[23,20,26],SVI:[2,1,3], LNI:[1,0,1]}, GG34:{OC:[64,null,null],ECE:[28,24,31],SVI:[6,4,9],LNI:[2,1,4]}, GG5:{OC:[47,39,55],ECE:[35,27,42],SVI:[12,8,19],LNI:[5,2,9]} },
+    "6to10":{ GG1:{OC:[87,85,89],ECE:[12,10,14],SVI:[1,1,2], LNI:[0,0,1]}, GG2:{OC:[67,63,71],ECE:[28,24,31],SVI:[4,2,6], LNI:[1,0,2]}, GG34:{OC:[53,49,58],ECE:[32,27,36],SVI:[11,8,15],LNI:[4,2,6]}, GG5:{OC:[35,28,44],ECE:[36,28,44],SVI:[19,12,27],LNI:[9,5,15]} },
+    gt10:  { GG1:{OC:[80,75,84],ECE:[17,13,20],SVI:[3,1,4], LNI:[1,0,2]}, GG2:{OC:[52,46,58],ECE:[34,29,40],SVI:[8,5,12],LNI:[5,3,8]}, GG34:{OC:[35,30,41],ECE:[33,27,39],SVI:[20,14,27],LNI:[11,7,17]}, GG5:{OC:[19,13,26],ECE:[30,22,40],SVI:[28,18,38],LNI:[22,13,34]} },
   },
   T2a: {
-    le4: {
-      GG1: {OC:[88,86,91],ECE:[11,9,13], SVI:[1,0,1], LNI:[0,0,0]},
-      GG2: {OC:[70,65,74],ECE:[27,22,31],SVI:[2,1,4], LNI:[1,0,2]},
-      GG34:{OC:[58,53,64],ECE:[31,26,36],SVI:[7,4,11],LNI:[3,1,6]},
-      GG5: {OC:[41,32,50],ECE:[38,29,48],SVI:[13,7,21],LNI:[7,3,15]},
-    },
-    "4to6": {
-      GG1: {OC:[87,83,89],ECE:[12,10,15],SVI:[1,0,1], LNI:[0,0,0]},
-      GG2: {OC:[66,62,71],ECE:[30,25,35],SVI:[2,1,4], LNI:[1,0,2]},
-      GG34:{OC:[55,50,61],ECE:[35,null,null],SVI:[7,4,10],LNI:[3,1,5]},
-      GG5: {OC:[38,30,48],ECE:[44,null,null],SVI:[12,7,20],LNI:[6,3,12]},
-    },
-    "6to10": {
-      GG1: {OC:[82,78,86],ECE:[16,13,20],SVI:[1,1,2], LNI:[0,0,1]},
-      GG2: {OC:[58,52,64],ECE:[36,30,42],SVI:[4,2,6], LNI:[2,1,3]},
-      GG34:{OC:[45,39,51],ECE:[39,33,45],SVI:[11,7,16],LNI:[4,2,8]},
-      GG5: {OC:[28,21,37],ECE:[42,33,53],SVI:[19,11,29],LNI:[10,5,18]},
-    },
-    gt10: {
-      GG1: {OC:[73,67,79],ECE:[22,17,28],SVI:[3,1,6], LNI:[1,0,3]},
-      GG2: {OC:[43,36,50],ECE:[42,35,49],SVI:[8,5,12],LNI:[6,2,11]},
-      GG34:{OC:[28,22,35],ECE:[39,31,47],SVI:[19,13,28],LNI:[13,6,21]},
-      GG5: {OC:[14,9,21], ECE:[34,24,46],SVI:[26,15,39],LNI:[24,12,38]},
-    },
+    le4:   { GG1:{OC:[88,86,91],ECE:[11,9,13], SVI:[1,0,1], LNI:[0,0,0]}, GG2:{OC:[70,65,74],ECE:[27,22,31],SVI:[2,1,4], LNI:[1,0,2]}, GG34:{OC:[58,53,64],ECE:[31,26,36],SVI:[7,4,11],LNI:[3,1,6]}, GG5:{OC:[41,32,50],ECE:[38,29,48],SVI:[13,7,21],LNI:[7,3,15]} },
+    "4to6":{ GG1:{OC:[87,83,89],ECE:[12,10,15],SVI:[1,0,1], LNI:[0,0,0]}, GG2:{OC:[66,62,71],ECE:[30,25,35],SVI:[2,1,4], LNI:[1,0,2]}, GG34:{OC:[55,50,61],ECE:[35,null,null],SVI:[7,4,10],LNI:[3,1,5]}, GG5:{OC:[38,30,48],ECE:[44,null,null],SVI:[12,7,20],LNI:[6,3,12]} },
+    "6to10":{ GG1:{OC:[82,78,86],ECE:[16,13,20],SVI:[1,1,2], LNI:[0,0,1]}, GG2:{OC:[58,52,64],ECE:[36,30,42],SVI:[4,2,6], LNI:[2,1,3]}, GG34:{OC:[45,39,51],ECE:[39,33,45],SVI:[11,7,16],LNI:[4,2,8]}, GG5:{OC:[28,21,37],ECE:[42,33,53],SVI:[19,11,29],LNI:[10,5,18]} },
+    gt10:  { GG1:{OC:[73,67,79],ECE:[22,17,28],SVI:[3,1,6], LNI:[1,0,3]}, GG2:{OC:[43,36,50],ECE:[42,35,49],SVI:[8,5,12],LNI:[6,2,11]}, GG34:{OC:[28,22,35],ECE:[39,31,47],SVI:[19,13,28],LNI:[13,6,21]}, GG5:{OC:[14,9,21], ECE:[34,24,46],SVI:[26,15,39],LNI:[24,12,38]} },
   },
   T2bc: {
-    le4: {
-      GG1: {OC:[79,73,83],ECE:[19,15,25],SVI:[1,1,2], LNI:[1,0,2]},
-      GG2: {OC:[52,44,58],ECE:[40,32,47],SVI:[5,3,7], LNI:[4,2,7]},
-      GG34:{OC:[37,30,44],ECE:[40,33,48],SVI:[12,7,18],LNI:[10,5,16]},
-      GG5: {OC:[21,15,28],ECE:[40,30,51],SVI:[18,10,27],LNI:[21,11,33]},
-    },
-    "4to6": {
-      GG1: {OC:[76,69,81],ECE:[22,17,28],SVI:[1,1,2], LNI:[0,0,2]},
-      GG2: {OC:[48,41,55],ECE:[44,37,51],SVI:[4,2,7], LNI:[4,2,7]},
-      GG34:{OC:[35,28,42],ECE:[44,37,52],SVI:[9,5,15], LNI:[9,5,15]},
-      GG5: {OC:[20,14,27],ECE:[44,34,54],SVI:[17,10,26],LNI:[19,10,29]},
-    },
-    "6to10": {
-      GG1: {OC:[69,61,75],ECE:[27,21,34],SVI:[3,1,5], LNI:[1,0,4]},
-      GG2: {OC:[38,31,45],ECE:[49,null,null],SVI:[7,4,12],LNI:[6,3,12]},
-      GG34:{OC:[25,19,31],ECE:[44,36,51],SVI:[17,11,24],LNI:[14,8,22]},
-      GG5: {OC:[13,8,18], ECE:[41,null,null],SVI:[20,null,null],LNI:[26,15,40]},
-    },
-    gt10: {
-      GG1: {OC:[54,45,63],ECE:[34,26,42],SVI:[6,3,10],LNI:[5,1,14]},
-      GG2: {OC:[23,17,29],ECE:[46,37,55],SVI:[12,7,20],LNI:[18,9,30]},
-      GG34:{OC:[12,8,16], ECE:[33,25,43],SVI:[22,14,32],LNI:[32,21,44]},
-      GG5: {OC:[5,3,8],   ECE:[23,16,34],SVI:[23,14,36],LNI:[48,32,62]},
-    },
+    le4:   { GG1:{OC:[79,73,83],ECE:[19,15,25],SVI:[1,1,2], LNI:[1,0,2]}, GG2:{OC:[52,44,58],ECE:[40,32,47],SVI:[5,3,7], LNI:[4,2,7]}, GG34:{OC:[37,30,44],ECE:[40,33,48],SVI:[12,7,18],LNI:[10,5,16]}, GG5:{OC:[21,15,28],ECE:[40,30,51],SVI:[18,10,27],LNI:[21,11,33]} },
+    "4to6":{ GG1:{OC:[76,69,81],ECE:[22,17,28],SVI:[1,1,2], LNI:[0,0,2]}, GG2:{OC:[48,41,55],ECE:[44,37,51],SVI:[4,2,7], LNI:[4,2,7]}, GG34:{OC:[35,28,42],ECE:[44,37,52],SVI:[9,5,15], LNI:[9,5,15]}, GG5:{OC:[20,14,27],ECE:[44,34,54],SVI:[17,10,26],LNI:[19,10,29]} },
+    "6to10":{ GG1:{OC:[69,61,75],ECE:[27,21,34],SVI:[3,1,5], LNI:[1,0,4]}, GG2:{OC:[38,31,45],ECE:[49,null,null],SVI:[7,4,12],LNI:[6,3,12]}, GG34:{OC:[25,19,31],ECE:[44,36,51],SVI:[17,11,24],LNI:[14,8,22]}, GG5:{OC:[13,8,18], ECE:[41,null,null],SVI:[20,null,null],LNI:[26,15,40]} },
+    gt10:  { GG1:{OC:[54,45,63],ECE:[34,26,42],SVI:[6,3,10],LNI:[5,1,14]}, GG2:{OC:[23,17,29],ECE:[46,37,55],SVI:[12,7,20],LNI:[18,9,30]}, GG34:{OC:[12,8,16], ECE:[33,25,43],SVI:[22,14,32],LNI:[32,21,44]}, GG5:{OC:[5,3,8],   ECE:[23,16,34],SVI:[23,14,36],LNI:[48,32,62]} },
   },
 };
 
 // ============================================================
-// マッピング定数
+// マッピング
 // ============================================================
-// Naito: PSA入力値 → データキー
-const NAITO_PSA = { le4:'le4', '4_6':'4_6', '6_8':'6_8', '8_10':'8_10',
-                    '10to20':'ge10', '20to40':'ge10', gt40:'ge10' };
-// Naito: GS入力値 → データキー（GS8とGS9-10は同一バケット）
-const NAITO_GS  = { le6:'le6', '7_34':'7_34', '7_43':'7_43', '8':'ge8', '9_10':'ge8' };
+const NAITO_PSA = { le4:'le4','4_6':'4_6','6_8':'6_8','8_10':'8_10','10to20':'ge10','20to40':'ge10',gt40:'ge10' };
+const NAITO_GS  = { le6:'le6','7_34':'7_34','7_43':'7_43','8':'ge8','9_10':'ge8' };
+const HOPK_PSA  = { le4:'le4','4_6':'4to6','6_8':'6to10','8_10':'6to10','10to20':'gt10','20to40':'gt10',gt40:'gt10' };
+const HOPK_STG  = { T1c:'T1c',T2a:'T2a',T2b:'T2bc',T2c:'T2bc' };
+const HOPK_GG   = { le6:'GG1','7_34':'GG2','7_43':'GG34','8':'GG34','9_10':'GG5' };
 
-// Hopkins: PSA入力値 → データキー
-const HOPK_PSA  = { le4:'le4', '4_6':'4to6', '6_8':'6to10', '8_10':'6to10',
-                    '10to20':'gt10', '20to40':'gt10', gt40:'gt10' };
-// Hopkins: Stage入力値 → データキー（T2b/c合算）
-const HOPK_STG  = { T1c:'T1c', T2a:'T2a', T2b:'T2bc', T2c:'T2bc' };
-// Hopkins: GS入力値 → データキー（GG3/GG4合算）
-const HOPK_GG   = { le6:'GG1', '7_34':'GG2', '7_43':'GG34', '8':'GG34', '9_10':'GG5' };
-
-const STAGE_LABEL = { T1c:'T1c', T2a:'T2a', T2b:'T2b', T2c:'T2c', T3a:'T3a', T3b:'T3b' };
-const PSA_LABEL   = { le4:'≤4.0', '4_6':'4.1〜6.0', '6_8':'6.1〜8.0', '8_10':'8.1〜10.0',
-                      '10to20':'10.1〜20.0', '20to40':'20.1〜40.0', gt40:'>40.0' };
-const GS_LABEL    = { le6:'≤6（GG1）', '7_34':'7(3+4)（GG2）', '7_43':'7(4+3)（GG3）',
-                      '8':'8（GG4）', '9_10':'9〜10（GG5）' };
+const PSA_LABEL = { le4:'≤4.0','4_6':'4.1–6.0','6_8':'6.1–8.0','8_10':'8.1–10.0','10to20':'10.1–20.0','20to40':'20.1–40.0',gt40:'>40.0' };
+const GS_LABEL  = { le6:'≤6 (GG1)','7_34':'7(3+4) (GG2)','7_43':'7(4+3) (GG3)','8':'8 (GG4)','9_10':'9–10 (GG5)' };
+const STAGE_LBL = { T1c:'T1c',T2a:'T2a',T2b:'T2b',T2c:'T2c',T3a:'T3a',T3b:'T3b' };
 
 // ============================================================
-// NCCN リスク分類（v5.2026）
+// NCCN リスク分類
 // ============================================================
 function getNccnRisk(stage, psa, gs) {
-  const gg = { le6:1, '7_34':2, '7_43':3, '8':4, '9_10':5 }[gs];
+  const gg = { le6:1,'7_34':2,'7_43':3,'8':4,'9_10':5 }[gs];
   const ggLabel = 'Grade Group ' + gg;
+  const t = T[lang];
 
   const psaLt10   = ['le4','4_6','6_8','8_10'].includes(psa);
   const psa10to20 = psa === '10to20';
   const psaGt20   = psa === '20to40' || psa === 'gt40';
   const psaGt40   = psa === 'gt40';
-
-  const hrStage  = stage === 'T3a';
-  const vhStage  = stage === 'T3b';
-  const irfStage = stage === 'T2b' || stage === 'T2c';
-
-  // High risk criteria count (T3a / GG4 / PSA>20)
+  const hrStage   = stage === 'T3a';
+  const vhStage   = stage === 'T3b';
+  const irfStage  = stage === 'T2b' || stage === 'T2c';
   const hrC = (hrStage?1:0) + (gg===4?1:0) + (psaGt20?1:0);
 
-  // Very High
   if (vhStage || gg===5 || hrC>=2) {
     let sub;
-    if (vhStage)
-      sub = 'cT3b = Very High risk criterion';
-    else if (gg===5)
-      sub = 'GG5（primary Gleason pattern 5）= Very High risk criterion';
+    if (vhStage)     sub = t.nVH_T3b;
+    else if (gg===5) sub = t.nVH_GG5;
     else {
       const p = [];
       if (hrStage) p.push('cT3a');
       if (gg===4)  p.push('GG4');
-      if (psaGt20) p.push('PSA >' + (psaGt40?'40':'20') + ' ng/mL');
-      sub = p.join(' + ') + ' → 高リスク因子 2基準 → Very High Risk';
+      if (psaGt20) p.push('PSA >'+(psaGt40?'40':'20')+' ng/mL');
+      sub = p.join(' + ') + ' → ' + t.nVH_multi;
     }
     return { label:'Very High', color:'#553c9a', bg:'#faf5ff', border:'#b794f4', sub, gg:ggLabel };
   }
 
-  // High（1基準）
   if (hrStage || gg===4 || psaGt20) {
     const p = [];
     if (hrStage) p.push('cT3a');
     if (gg===4)  p.push('GG4');
-    if (psaGt20) p.push('PSA >' + (psaGt40?'40':'20') + ' ng/mL');
-    return {
-      label:'High', color:'#9b2335', bg:'#fff5f5', border:'#fc8181',
-      sub: p.join(' + ') + ' = High risk criterion（1基準）',
-      gg: ggLabel
-    };
+    if (psaGt20) p.push('PSA >'+(psaGt40?'40':'20')+' ng/mL');
+    return { label:'High', color:'#9b2335', bg:'#fff5f5', border:'#fc8181',
+             sub: p.join(' + ') + ' = ' + t.nHigh, gg:ggLabel };
   }
 
-  // GG3 → 常に Unfavorable Intermediate
   if (gg===3) {
-    return {
-      label:'Intermediate Unfavorable', color:'#c05621', bg:'#fffaf0', border:'#f6ad55',
-      sub: 'GG3（4+3=7）は陽性コア割合に関わらず Unfavorable Intermediate',
-      gg: ggLabel
-    };
+    return { label:'Intermediate Unfavorable', color:'#c05621', bg:'#fffaf0', border:'#f6ad55',
+             sub: t.nUFI_GG3, gg:ggLabel };
   }
 
-  // IRF集計（GG1/GG2 の場合）
   const irfList = [];
-  if (irfStage)  irfList.push('cT2b-T2c');
+  if (irfStage)  irfList.push('cT2b–T2c');
   if (gg===2)    irfList.push('Grade Group 2');
-  if (psa10to20) irfList.push('PSA 10〜20 ng/mL');
+  if (psa10to20) irfList.push(t.irfPSA);
   const irfC = irfList.length;
 
-  if (irfC===0) {
-    return {
-      label:'Low', color:'#276749', bg:'#f0fff4', border:'#68d391',
-      sub: 'cT1c〜T2a・PSA <10 ng/mL・GG1 — すべて低リスク基準を満たす',
-      gg: ggLabel
-    };
-  }
-  if (irfC===1) {
-    return {
-      label:'Intermediate', color:'#b7791f', bg:'#fffff0', border:'#f6e05e',
-      sub: '中間リスク因子（IRF）1つ：' + irfList[0] + '\n陽性コア <50% → Favorable / ≥50% → Unfavorable',
-      gg: ggLabel
-    };
-  }
+  if (irfC===0) return { label:'Low', color:'#276749', bg:'#f0fff4', border:'#68d391', sub:t.nLow, gg:ggLabel };
+
+  if (irfC===1) return {
+    label:'Intermediate', color:'#b7791f', bg:'#fffff0', border:'#f6e05e',
+    sub: t.irf1 + irfList[0] + '\n' + t.nFav_1irf, gg:ggLabel
+  };
+
   return {
     label:'Intermediate Unfavorable', color:'#c05621', bg:'#fffaf0', border:'#f6ad55',
-    sub: 'IRF ' + irfC + 'つ（' + irfList.join('・') + '）→ Unfavorable Intermediate',
-    gg: ggLabel
+    sub: (lang==='jp' ? t.irfN+irfC+t.irfNpost : irfC+t.irfNpost) + irfList.join('・') + t.irfNend + ' → ' + t.nUFI_multi,
+    gg:ggLabel
   };
 }
 
 // ============================================================
-// バー描画ヘルパー
+// バー描画
 // ============================================================
 function setBar(pre, id, val) {
-  const ep = document.getElementById(pre + id + '-pct');
-  const ec = document.getElementById(pre + id + '-ci');
-  const eb = document.getElementById(pre + id + '-bar');
+  const ep = document.getElementById(pre+id+'-pct');
+  const ec = document.getElementById(pre+id+'-ci');
+  const eb = document.getElementById(pre+id+'-bar');
+  const t  = T[lang];
   if (!val) {
     ep.textContent = '—';
-    ec.innerHTML = '<span class="na-box">報告なし</span>';
+    ec.innerHTML = '<span class="na-box">'+t.notReported+'</span>';
     eb.style.width = '0%';
-  } else if (val[1] === null) {
-    ep.textContent = val[0] + '%';
-    ec.textContent = '（計算値・CI不明）';
-    eb.style.width = Math.min(val[0],100) + '%';
+  } else if (val[1]===null) {
+    ep.textContent = val[0]+'%';
+    ec.textContent = t.derived;
+    eb.style.width = Math.min(val[0],100)+'%';
   } else {
-    ep.textContent = val[0] + '%';
-    ec.textContent = '95% CI: ' + val[1] + '〜' + val[2] + '%';
-    eb.style.width = Math.min(val[0],100) + '%';
+    ep.textContent = val[0]+'%';
+    ec.textContent = '95% CI: '+val[1]+'–'+val[2]+'%';
+    eb.style.width = Math.min(val[0],100)+'%';
   }
 }
 
@@ -595,21 +609,21 @@ function calculate() {
   const stage = document.getElementById('stage').value;
   const psa   = document.getElementById('psa').value;
   const gs    = document.getElementById('gs').value;
+  const t     = T[lang];
 
   if (!stage || !psa || !gs) {
-    alert('Clinical Stage、PSA、Gleason Score をすべて選択してください。');
+    alert(lang==='jp' ? 'Clinical Stage、PSA、Gleason Score をすべて選択してください。'
+                      : 'Please select Clinical Stage, PSA, and Gleason Score.');
     return;
   }
 
-  const isT3 = stage === 'T3a' || stage === 'T3b';
+  const isT3 = stage==='T3a' || stage==='T3b';
 
-  // サマリー
   document.getElementById('summary-box').innerHTML =
-    '<strong>入力値：</strong> Stage <strong>' + STAGE_LABEL[stage] +
-    '</strong>　PSA <strong>' + PSA_LABEL[psa] + ' ng/mL' +
-    '</strong>　GS <strong>' + GS_LABEL[gs] + '</strong>';
+    '<strong>'+t.summaryPrefix+'</strong> Stage <strong>'+STAGE_LBL[stage]+
+    '</strong>　PSA <strong>'+PSA_LABEL[psa]+' ng/mL'+
+    '</strong>　GS <strong>'+GS_LABEL[gs]+'</strong>';
 
-  // NCCN
   const nccn = getNccnRisk(stage, psa, gs);
   const box  = document.getElementById('nccn-box');
   box.style.background  = nccn.bg;
@@ -619,7 +633,6 @@ function calculate() {
   document.getElementById('nccn-sub').innerHTML = nccn.sub.replace(/\n/g,'<br>');
   document.getElementById('nccn-gg').textContent = nccn.gg;
 
-  // Partin
   if (isT3) {
     document.getElementById('partin-na').style.display = 'block';
     document.getElementById('partin-cols').style.display = 'none';
@@ -627,42 +640,38 @@ function calculate() {
     document.getElementById('partin-na').style.display = 'none';
     document.getElementById('partin-cols').style.display = 'grid';
 
-    // ── 日本版 Naito ──
-    const nPSA = NAITO_PSA[psa];
-    const nGS  = NAITO_GS[gs];
-    const nd   = NAITO[stage][nPSA][nGS];
-    setBar('naito-', 'ocd', nd.OCD);
-    setBar('naito-', 'epe', nd.EPE);
-    setBar('naito-', 'svi', nd.SVI);
-    setBar('naito-', 'lni', nd.LNI);
+    const nPSA = NAITO_PSA[psa], nGS = NAITO_GS[gs];
+    const nd = NAITO[stage][nPSA][nGS];
+    setBar('naito-','ocd',nd.OCD); setBar('naito-','epe',nd.EPE);
+    setBar('naito-','svi',nd.SVI); setBar('naito-','lni',nd.LNI);
 
     const nNotes = [];
-    if (['10to20','20to40','gt40'].includes(psa)) nNotes.push('PSA ≥10.1バケットを使用');
-    if (gs==='9_10') nNotes.push('GS9〜10はGS8と同一バケット（≥8）を使用');
+    if (['10to20','20to40','gt40'].includes(psa)) nNotes.push(t.naitoNote10);
+    if (gs==='9_10') nNotes.push(t.naitoNoteGS);
     document.getElementById('naito-note').textContent = nNotes.length ? '※ '+nNotes.join('、') : '';
 
-    // ── Hopkins版 ──
-    const hPSA = HOPK_PSA[psa];
-    const hSTG = HOPK_STG[stage];
-    const hGG  = HOPK_GG[gs];
-    const hd   = HOPKINS[hSTG][hPSA][hGG];
-    setBar('hopkins-', 'ocd', hd.OC);
-    setBar('hopkins-', 'epe', hd.ECE);
-    setBar('hopkins-', 'svi', hd.SVI);
-    setBar('hopkins-', 'lni', hd.LNI);
+    const hd = HOPKINS[HOPK_STG[stage]][HOPK_PSA[psa]][HOPK_GG[gs]];
+    setBar('hopkins-','ocd',hd.OC); setBar('hopkins-','epe',hd.ECE);
+    setBar('hopkins-','svi',hd.SVI); setBar('hopkins-','lni',hd.LNI);
 
     const hNotes = [];
-    if (stage==='T2b'||stage==='T2c') hNotes.push('T2b/cを合算したデータを使用');
-    if (gs==='7_43'||gs==='8')        hNotes.push('GG3・GG4を合算したデータを使用');
-    if (['6_8','8_10'].includes(psa)) hNotes.push('Hopkins 6.1〜10.0バケットを使用');
-    if (['10to20','20to40','gt40'].includes(psa)) hNotes.push('Hopkins >10バケットを使用');
+    if (stage==='T2b'||stage==='T2c')     hNotes.push(t.hopkinsNoteT2bc);
+    if (gs==='7_43'||gs==='8')            hNotes.push(t.hopkinsNoteGG34);
+    if (['6_8','8_10'].includes(psa))     hNotes.push(t.hopkinsNote610);
+    if (['10to20','20to40','gt40'].includes(psa)) hNotes.push(t.hopkinsNoteGt10);
     document.getElementById('hopkins-note').textContent = hNotes.length ? '※ '+hNotes.join('、') : '';
   }
+
+  // warning and disclaimer (static i18n)
+  document.getElementById('warning-box').innerHTML = t.warning;
 
   const rc = document.getElementById('result-card');
   rc.style.display = 'block';
   rc.scrollIntoView({ behavior:'smooth', block:'start' });
 }
+
+// Init disclaimer in footer and warning
+document.addEventListener('DOMContentLoaded', () => setLang('jp'));
 </script>
 
 <script>
