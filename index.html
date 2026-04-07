@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日本版 Partin Tables（Naito et al. 2008）</title>
+  <title>前立腺癌 Partin Tables 計算ツール（日本版 + Hopkins版）</title>
   <link rel="manifest" href="manifest-partin.json">
   <meta name="theme-color" content="#1a3a5c">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,215 +13,91 @@
   <link rel="apple-touch-icon" href="icon-partin.svg">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI','Helvetica Neue',Arial,sans-serif; background:#f0f4f8; color:#2d3748; min-height:100vh; }
 
-    body {
-      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-      background: #f0f4f8;
-      color: #2d3748;
-      min-height: 100vh;
-    }
+    header { background:linear-gradient(135deg,#1a3a5c 0%,#2b6cb0 100%); color:white; padding:28px 24px 22px; text-align:center; }
+    header h1 { font-size:1.45rem; font-weight:700; letter-spacing:0.3px; margin-bottom:6px; }
+    header p  { font-size:0.82rem; opacity:0.85; }
 
-    header {
-      background: linear-gradient(135deg, #1a3a5c 0%, #2b6cb0 100%);
-      color: white;
-      padding: 28px 24px 22px;
-      text-align: center;
-    }
+    .container { max-width:820px; margin:0 auto; padding:24px 16px 48px; }
 
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      margin-bottom: 6px;
-    }
+    .card { background:white; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); padding:24px; margin-bottom:20px; }
+    .card h2 { font-size:1rem; font-weight:700; color:#1a3a5c; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #ebf0f7; }
 
-    header p { font-size: 0.82rem; opacity: 0.85; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+    @media(max-width:540px){ .form-grid{ grid-template-columns:1fr; } }
 
-    .container { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
-
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      padding: 28px;
-      margin-bottom: 20px;
-    }
-
-    .card h2 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #1a3a5c;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #ebf0f7;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-    }
-
-    @media (max-width: 540px) { .form-grid { grid-template-columns: 1fr; } }
-
-    .form-group label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #4a6080;
-      margin-bottom: 6px;
-      letter-spacing: 0.3px;
-    }
-
+    .form-group label { display:block; font-size:0.78rem; font-weight:600; color:#4a6080; margin-bottom:6px; }
     .form-group select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid #d0dae8;
-      border-radius: 8px;
-      font-size: 0.92rem;
-      color: #2d3748;
-      background: #f7fafc;
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a6080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      cursor: pointer;
-      transition: border-color 0.2s;
+      width:100%; padding:10px 12px; border:1.5px solid #d0dae8; border-radius:8px;
+      font-size:0.9rem; color:#2d3748; background:#f7fafc; appearance:none; -webkit-appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a6080' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 12px center; cursor:pointer; transition:border-color 0.2s;
     }
+    .form-group select:focus { outline:none; border-color:#2b6cb0; background-color:white; }
 
-    .form-group select:focus { outline: none; border-color: #2b6cb0; background-color: white; }
+    .btn-calc { width:100%; margin-top:20px; padding:13px; background:linear-gradient(135deg,#1a3a5c,#2b6cb0); color:white; border:none; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s,transform 0.1s; }
+    .btn-calc:hover{ opacity:0.9; } .btn-calc:active{ transform:scale(0.99); }
 
-    .btn-calc {
-      width: 100%;
-      margin-top: 20px;
-      padding: 13px;
-      background: linear-gradient(135deg, #1a3a5c, #2b6cb0);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 0.3px;
-      transition: opacity 0.2s, transform 0.1s;
-    }
+    #result-card { display:none; }
 
-    .btn-calc:hover { opacity: 0.9; }
-    .btn-calc:active { transform: scale(0.99); }
+    .summary-box { background:#ebf4ff; border-left:4px solid #2b6cb0; border-radius:6px; padding:12px 16px; margin-bottom:20px; font-size:0.88rem; color:#2c4a6e; line-height:1.6; }
 
-    #result-card { display: none; }
+    /* NCCN */
+    .nccn-box { border-radius:8px; padding:14px 18px; margin-bottom:20px; border-left:5px solid; }
+    .nccn-box .nccn-title { font-size:0.72rem; font-weight:700; letter-spacing:0.5px; margin-bottom:4px; opacity:0.7; }
+    .nccn-box .nccn-label { font-size:1.15rem; font-weight:800; margin-bottom:4px; }
+    .nccn-box .nccn-sub { font-size:0.78rem; line-height:1.6; opacity:0.85; }
+    .nccn-gg { font-size:0.75rem; margin-top:6px; padding:4px 8px; background:rgba(0,0,0,0.06); border-radius:4px; display:inline-block; }
 
-    .summary-box {
-      background: #ebf4ff;
-      border-left: 4px solid #2b6cb0;
-      border-radius: 6px;
-      padding: 12px 16px;
-      margin-bottom: 20px;
-      font-size: 0.88rem;
-      color: #2c4a6e;
-      line-height: 1.6;
-    }
+    .divider { border:none; border-top:1px solid #edf2f7; margin:16px 0; }
 
-    /* NCCN risk box */
-    .nccn-box {
-      border-radius: 8px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
-      border-left: 5px solid;
-    }
+    /* Partin two-column layout */
+    .partin-cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:560px){ .partin-cols{ grid-template-columns:1fr; } }
 
-    .nccn-box .nccn-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-      opacity: 0.7;
-    }
+    .partin-col { border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; }
+    .col-header { padding:10px 14px; }
+    .col-header .col-title { font-size:0.88rem; font-weight:700; color:white; }
+    .col-header .col-sub   { font-size:0.68rem; color:rgba(255,255,255,0.8); margin-top:2px; }
+    .naito-header   { background:linear-gradient(135deg,#1a3a5c,#2b6cb0); }
+    .hopkins-header { background:linear-gradient(135deg,#822727,#c53030); }
 
-    .nccn-box .nccn-label {
-      font-size: 1.15rem;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
+    .col-body { padding:12px 14px; }
 
-    .nccn-box .nccn-sub {
-      font-size: 0.78rem;
-      line-height: 1.6;
-      opacity: 0.85;
-    }
+    .result-item-sm { margin-bottom:12px; }
+    .result-header-sm { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
+    .result-label-sm { font-size:0.78rem; font-weight:700; color:#2d3748; }
+    .result-label-sm span { font-weight:400; font-size:0.7rem; color:#718096; margin-left:4px; }
+    .result-pct-sm { font-size:1.15rem; font-weight:800; }
+    .result-ci-sm  { font-size:0.68rem; color:#718096; text-align:right; margin-top:2px; }
+    .bar-track { height:9px; background:#edf2f7; border-radius:99px; overflow:hidden; }
+    .bar-fill  { height:100%; border-radius:99px; transition:width 0.5s ease; }
 
-    .nccn-gg {
-      font-size: 0.75rem;
-      margin-top: 6px;
-      padding: 4px 8px;
-      background: rgba(0,0,0,0.06);
-      border-radius: 4px;
-      display: inline-block;
-    }
+    .color-ocd{color:#276749;} .color-epe{color:#c05621;} .color-svi{color:#9b2335;} .color-lni{color:#553c9a;}
+    .bar-ocd{background:linear-gradient(90deg,#38a169,#68d391);}
+    .bar-epe{background:linear-gradient(90deg,#dd6b20,#f6ad55);}
+    .bar-svi{background:linear-gradient(90deg,#c53030,#fc8181);}
+    .bar-lni{background:linear-gradient(90deg,#6b46c1,#b794f4);}
 
-    /* Partin results */
-    .result-item { margin-bottom: 18px; }
+    .table-note { font-size:0.68rem; color:#718096; padding:6px 14px 10px; line-height:1.5; }
 
-    .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 6px;
-    }
+    .na-box { font-size:0.82rem; color:#a0aec0; font-style:italic; padding:4px 0; }
 
-    .result-label { font-size: 0.9rem; font-weight: 700; color: #2d3748; }
-    .result-label span { font-weight: 400; font-size: 0.8rem; color: #718096; margin-left: 6px; }
-    .result-pct { font-size: 1.4rem; font-weight: 800; }
-    .result-ci { font-size: 0.75rem; color: #718096; text-align: right; margin-top: 2px; }
+    .warning-box { background:#fffaf0; border-left:4px solid #dd6b20; border-radius:6px; padding:10px 14px; font-size:0.78rem; color:#7b341e; margin-top:14px; line-height:1.6; }
 
-    .bar-track { height: 10px; background: #edf2f7; border-radius: 99px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
-
-    .color-ocd { color: #276749; }
-    .color-epe { color: #c05621; }
-    .color-svi { color: #9b2335; }
-    .color-lni { color: #553c9a; }
-
-    .bar-ocd { background: linear-gradient(90deg, #38a169, #68d391); }
-    .bar-epe { background: linear-gradient(90deg, #dd6b20, #f6ad55); }
-    .bar-svi { background: linear-gradient(90deg, #c53030, #fc8181); }
-    .bar-lni { background: linear-gradient(90deg, #6b46c1, #b794f4); }
-
-    .na-box { font-size: 0.82rem; color: #a0aec0; font-style: italic; padding: 4px 0; }
-    .divider { border: none; border-top: 1px solid #edf2f7; margin: 16px 0; }
-
-    .warning-box {
-      background: #fffaf0;
-      border-left: 4px solid #dd6b20;
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 0.8rem;
-      color: #7b341e;
-      margin-top: 16px;
-      line-height: 1.6;
-    }
-
-    footer {
-      background: #2d3748;
-      color: #a0aec0;
-      text-align: center;
-      padding: 18px;
-      font-size: 0.75rem;
-      line-height: 1.7;
-    }
+    footer { background:#2d3748; color:#a0aec0; text-align:center; padding:18px; font-size:0.73rem; line-height:1.8; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>前立腺癌 日本版 Partin Tables 計算ツール</h1>
-  <p>根治的前立腺全摘術前の病理病期・NCCNリスク予測（Naito et al., J Urol 2008）</p>
+  <h1>前立腺癌 Partin Tables 計算ツール</h1>
+  <p>日本版（Naito 2008）・Hopkins版（Tosoian 2016）・NCCN v5.2026 リスク分類</p>
 </header>
 
 <div class="container">
 
-  <!-- 入力カード -->
   <div class="card">
     <h2>術前データ入力</h2>
     <div class="form-grid">
@@ -245,7 +121,9 @@
           <option value="4_6">4.1 〜 6.0</option>
           <option value="6_8">6.1 〜 8.0</option>
           <option value="8_10">8.1 〜 10.0</option>
-          <option value="ge10">≥ 10.1</option>
+          <option value="10to20">10.1 〜 20.0</option>
+          <option value="20to40">20.1 〜 40.0</option>
+          <option value="gt40">&gt; 40.0</option>
         </select>
       </div>
       <div class="form-group">
@@ -260,15 +138,13 @@
         </select>
       </div>
     </div>
-    <button class="btn-calc" onclick="calculate()">病理病期を予測する</button>
+    <button class="btn-calc" onclick="calculate()">病理病期・リスクを予測する</button>
   </div>
 
-  <!-- 結果カード -->
   <div class="card" id="result-card">
     <h2>予測結果</h2>
     <div class="summary-box" id="summary-box"></div>
 
-    <!-- NCCN リスク分類 -->
     <div class="nccn-box" id="nccn-box">
       <div class="nccn-title">NCCN RISK CLASSIFICATION（v5.2026）</div>
       <div class="nccn-label" id="nccn-label">—</div>
@@ -278,328 +154,438 @@
 
     <hr class="divider">
 
-    <!-- Partin 確率 -->
     <div id="partin-section">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <span style="font-size:0.82rem;font-weight:700;color:#2d3748">Partin Tables 病期予測確率</span>
-      <span style="background:#edf2f7;color:#718096;border-radius:4px;padding:2px 8px;font-size:0.72rem;white-space:nowrap">適応：cT1c〜T2c（T3以上は対象外）</span>
-    </div>
-
-    <div id="partin-na" style="display:none;background:#fff8f0;border:1px solid #ed8936;border-radius:8px;padding:14px 16px;color:#7b341e;font-size:0.88rem;margin-bottom:8px">
-      ⚠️ T3ステージはPartin Tablesの適応外のため、病期予測確率は表示されません。<br>
-      <span style="font-size:0.78rem;color:#9c4221">（Partin Tablesの対象はcT1c〜T2c）</span>
-    </div>
-
-    <div id="partin-bars">
-    <div class="result-item">
-      <div class="result-header">
-        <div class="result-label">Organ Confined Disease（OCD）<span>臓器限局</span></div>
-        <div class="result-pct color-ocd" id="ocd-pct"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <span style="font-size:0.82rem;font-weight:700;color:#2d3748">Partin Tables 病期予測確率</span>
+        <span style="background:#edf2f7;color:#718096;border-radius:4px;padding:2px 8px;font-size:0.72rem;white-space:nowrap">適応：cT1c〜T2c（T3以上は対象外）</span>
       </div>
-      <div class="bar-track"><div class="bar-fill bar-ocd" id="ocd-bar" style="width:0%"></div></div>
-      <div class="result-ci" id="ocd-ci"></div>
-    </div>
 
-    <hr class="divider">
-
-    <div class="result-item">
-      <div class="result-header">
-        <div class="result-label">Extraprostatic Extension（EPE）<span>前立腺外浸潤</span></div>
-        <div class="result-pct color-epe" id="epe-pct"></div>
+      <div id="partin-na" style="display:none;background:#fff8f0;border:1px solid #ed8936;border-radius:8px;padding:14px 16px;color:#7b341e;font-size:0.88rem;margin-bottom:8px">
+        ⚠️ T3ステージはPartin Tablesの適応外のため、病期予測確率は表示されません。<br>
+        <span style="font-size:0.78rem;color:#9c4221">（Partin Tablesの対象はcT1c〜T2c）</span>
       </div>
-      <div class="bar-track"><div class="bar-fill bar-epe" id="epe-bar" style="width:0%"></div></div>
-      <div class="result-ci" id="epe-ci"></div>
-    </div>
 
-    <hr class="divider">
+      <div id="partin-cols" class="partin-cols">
 
-    <div class="result-item">
-      <div class="result-header">
-        <div class="result-label">Seminal Vesicle Invasion（SVI）<span>精嚢浸潤</span></div>
-        <div class="result-pct color-svi" id="svi-pct"></div>
+        <!-- 日本版 Naito -->
+        <div class="partin-col">
+          <div class="col-header naito-header">
+            <div class="col-title">日本版 Partin Tables</div>
+            <div class="col-sub">Naito et al. J Urol 2008</div>
+          </div>
+          <div class="col-body">
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">OCD<span>臓器限局</span></div>
+                <div class="result-pct-sm color-ocd" id="naito-ocd-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-ocd" id="naito-ocd-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="naito-ocd-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">EPE<span>前立腺外浸潤</span></div>
+                <div class="result-pct-sm color-epe" id="naito-epe-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-epe" id="naito-epe-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="naito-epe-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">SVI<span>精嚢浸潤</span></div>
+                <div class="result-pct-sm color-svi" id="naito-svi-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-svi" id="naito-svi-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="naito-svi-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">LNI<span>リンパ節転移</span></div>
+                <div class="result-pct-sm color-lni" id="naito-lni-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-lni" id="naito-lni-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="naito-lni-ci"></div>
+            </div>
+          </div>
+          <div class="table-note" id="naito-note"></div>
+        </div>
+
+        <!-- Hopkins版 Tosoian -->
+        <div class="partin-col">
+          <div class="col-header hopkins-header">
+            <div class="col-title">Hopkins版 Partin Tables</div>
+            <div class="col-sub">Tosoian et al. BJU Int 2017</div>
+          </div>
+          <div class="col-body">
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">OC<span>臓器限局</span></div>
+                <div class="result-pct-sm color-ocd" id="hopkins-ocd-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-ocd" id="hopkins-ocd-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="hopkins-ocd-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">ECE<span>前立腺外浸潤</span></div>
+                <div class="result-pct-sm color-epe" id="hopkins-epe-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-epe" id="hopkins-epe-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="hopkins-epe-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">SV+<span>精嚢浸潤</span></div>
+                <div class="result-pct-sm color-svi" id="hopkins-svi-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-svi" id="hopkins-svi-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="hopkins-svi-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">LN+<span>リンパ節転移</span></div>
+                <div class="result-pct-sm color-lni" id="hopkins-lni-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-lni" id="hopkins-lni-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="hopkins-lni-ci"></div>
+            </div>
+          </div>
+          <div class="table-note" id="hopkins-note"></div>
+        </div>
+
+      </div><!-- /partin-cols -->
+
+      <div class="warning-box">
+        ※ 日本版：Naito 2008 論文 Table 3〜6 のルックアップテーブルに基づきます。PSA ≤4.0 の LNI は報告なし。GS9-10 は GS8 と同一バケット。<br>
+        ※ Hopkins版：Tosoian 2016 Table 2 に基づきます。T2b/T2c は合算データ。GG3（4+3）と GG4（GS8）は合算データ。PSA &gt;10.1 は全て &gt;10 バケット使用。<br>
+        ※ NCCNリスク分類は v5.2026 に基づきます。陽性コア割合（50%前後）が Favorable/Unfavorable の分岐に影響します。
       </div>
-      <div class="bar-track"><div class="bar-fill bar-svi" id="svi-bar" style="width:0%"></div></div>
-      <div class="result-ci" id="svi-ci"></div>
     </div>
-
-    <hr class="divider">
-
-    <div class="result-item">
-      <div class="result-header">
-        <div class="result-label">Lymph Node Involvement（LNI）<span>リンパ節転移</span></div>
-        <div class="result-pct color-lni" id="lni-pct"></div>
-      </div>
-      <div class="bar-track"><div class="bar-fill bar-lni" id="lni-bar" style="width:0%"></div></div>
-      <div class="result-ci" id="lni-ci"></div>
-    </div>
-
-    </div><!-- /partin-bars -->
-    <div class="warning-box">
-      ※ Partin確率は論文掲載のルックアップテーブル（Table 3〜6）に基づきます。GS 8とGS 9〜10は同一バケット（≥8）を使用。<br>
-      ※ PSA ≤ 4.0 ng/mL の場合、LNI 確率は論文で報告されていません。<br>
-      ※ NCCNリスク分類はv5.2026に基づきます。PSA ≥ 10.1 ng/mL は閾値をまたぐため条件付き表示となります。
-    </div>
-    </div><!-- /partin-section -->
   </div>
 
 </div>
 
 <footer>
-  Partin Tables：Naito S, et al. <em>J Urol</em> 2008; 180(3): 904-910. PMID: 18635221<br>
-  NCCN Guidelines® Version 5.2026 Prostate Cancer
+  日本版：Naito S, et al. <em>J Urol</em> 2008; 180(3): 904-910. PMID: 18635221<br>
+  Hopkins版：Tosoian JJ, et al. <em>BJU Int</em> 2017; 119(5): 676-683. PMID: 27523132<br>
+  NCCN Clinical Practice Guidelines in Oncology® Prostate Cancer Version 5.2026
 </footer>
 
 <script>
 // ============================================================
-// Partin データ（Table 3〜6）[中央値, CI下限, CI上限]
-// GS 8 / 9-10 は同一バケット ge8 を参照
+// 日本版 Partin データ（Naito 2008, Table 3〜6）
+// [中央値, CI下限, CI上限]  LNI:null = PSA≤4で報告なし
+// PSA keys: le4 / 4_6 / 6_8 / 8_10 / ge10
+// GS  keys: le6 / 7_34 / 7_43 / ge8（GS8とGS9-10共通）
 // ============================================================
-const DATA = {
+const NAITO = {
+  T1c: {
+    le4:  { le6:{OCD:[97,87,100],EPE:[3,0,6],  SVI:[0,0,1],  LNI:null},
+            "7_34":{OCD:[95,90,99], EPE:[4,0,10], SVI:[1,0,4],  LNI:null},
+            "7_43":{OCD:[93,85,99], EPE:[5,0,12], SVI:[2,0,7],  LNI:null},
+            ge8:  {OCD:[94,85,99], EPE:[3,0,9],  SVI:[3,0,11], LNI:null} },
+    "4_6":{ le6:{OCD:[85,80,90], EPE:[15,10,19],SVI:[0,0,1],  LNI:[0,0,0]},
+            "7_34":{OCD:[78,72,83], EPE:[20,15,26],SVI:[2,0,4],  LNI:[0,0,1]},
+            "7_43":{OCD:[72,64,80], EPE:[25,17,32],SVI:[3,1,6],  LNI:[0,0,1]},
+            ge8:  {OCD:[77,68,85], EPE:[17,11,24],SVI:[5,1,12], LNI:[1,0,2]} },
+    "6_8":{ le6:{OCD:[83,78,89], EPE:[16,11,22],SVI:[0,0,0],  LNI:[0,0,0]},
+            "7_34":{OCD:[76,69,83], EPE:[22,16,29],SVI:[1,0,2],  LNI:[0,0,1]},
+            "7_43":{OCD:[71,62,79], EPE:[27,19,36],SVI:[1,0,4],  LNI:[1,0,3]},
+            ge8:  {OCD:[76,68,84], EPE:[19,13,26],SVI:[3,0,7],  LNI:[2,0,5]} },
+    "8_10":{le6:{OCD:[78,71,85], EPE:[21,14,28],SVI:[1,0,2],  LNI:[0,0,1]},
+            "7_34":{OCD:[68,59,76], EPE:[27,19,35],SVI:[4,2,7],  LNI:[1,0,3]},
+            "7_43":{OCD:[59,50,70], EPE:[32,22,41],SVI:[6,2,12], LNI:[3,1,6]},
+            ge8:  {OCD:[62,51,73], EPE:[22,14,29],SVI:[11,4,21], LNI:[5,1,14]} },
+    ge10: { le6:{OCD:[72,66,79], EPE:[27,20,33],SVI:[1,0,2],  LNI:[0,0,1]},
+            "7_34":{OCD:[61,53,68], EPE:[33,26,41],SVI:[5,2,8],  LNI:[1,0,3]},
+            "7_43":{OCD:[53,45,61], EPE:[38,30,45],SVI:[7,3,12], LNI:[3,1,5]},
+            ge8:  {OCD:[55,46,64], EPE:[26,19,34],SVI:[13,7,21], LNI:[5,2,10]} },
+  },
+  T2a: {
+    le4:  { le6:{OCD:[96,90,100],EPE:[4,0,10], SVI:[0,0,2],  LNI:null},
+            "7_34":{OCD:[92,81,99], EPE:[6,0,14], SVI:[2,0,10], LNI:null},
+            "7_43":{OCD:[89,74,98], EPE:[7,0,8],  SVI:[4,0,16], LNI:null},
+            ge8:  {OCD:[88,73,99], EPE:[5,0,12], SVI:[7,0,23], LNI:null} },
+    "4_6":{ le6:{OCD:[78,70,85], EPE:[21,14,29],SVI:[1,0,2],  LNI:[0,0,1]},
+            "7_34":{OCD:[68,58,77], EPE:[28,19,37],SVI:[4,1,10], LNI:[1,0,3]},
+            "7_43":{OCD:[61,49,72], EPE:[32,23,43],SVI:[5,1,12], LNI:[1,0,6]},
+            ge8:  {OCD:[64,52,77], EPE:[22,14,33],SVI:[10,2,21], LNI:[3,0,10]} },
+    "6_8":{ le6:{OCD:[76,67,84], EPE:[23,15,33],SVI:[0,0,1],  LNI:[0,0,2]},
+            "7_34":{OCD:[66,55,76], EPE:[30,21,41],SVI:[2,0,5],  LNI:[2,0,6]},
+            "7_43":{OCD:[58,45,70], EPE:[35,23,47],SVI:[3,0,7],  LNI:[4,0,15]},
+            ge8:  {OCD:[62,48,74], EPE:[24,15,36],SVI:[5,0,12], LNI:[8,0,24]} },
+    "8_10":{le6:{OCD:[68,58,79], EPE:[29,20,40],SVI:[1,0,4],  LNI:[1,0,5]},
+            "7_34":{OCD:[54,41,65], EPE:[34,23,45],SVI:[8,2,15], LNI:[5,1,12]},
+            "7_43":{OCD:[44,33,56], EPE:[37,25,47],SVI:[10,4,20], LNI:[9,2,21]},
+            ge8:  {OCD:[42,30,55], EPE:[23,15,34],SVI:[18,7,29], LNI:[18,6,34]} },
+    ge10: { le6:{OCD:[62,51,71], EPE:[36,26,47],SVI:[1,0,5],  LNI:[1,0,5]},
+            "7_34":{OCD:[47,36,57], EPE:[40,30,51],SVI:[8,3,18], LNI:[5,1,11]},
+            "7_43":{OCD:[37,28,48], EPE:[42,31,52],SVI:[11,5,21], LNI:[9,2,20]},
+            ge8:  {OCD:[36,27,47], EPE:[27,18,37],SVI:[20,10,30],LNI:[18,8,29]} },
+  },
+  T2b: {
+    le4:  { le6:{OCD:[91,79,100],EPE:[8,0,20], SVI:[0,0,2],  LNI:null},
+            "7_34":{OCD:[85,68,98], EPE:[12,0,28], SVI:[3,0,12], LNI:null},
+            "7_43":{OCD:[81,60,97], EPE:[15,0,33], SVI:[5,0,18], LNI:null},
+            ge8:  {OCD:[82,62,98], EPE:[10,0,23], SVI:[8,0,27], LNI:null} },
+    "4_6":{ le6:{OCD:[63,47,75], EPE:[37,24,52],SVI:[1,0,2],  LNI:[0,0,1]},
+            "7_34":{OCD:[51,37,64], EPE:[45,32,58],SVI:[4,1,10], LNI:[0,0,4]},
+            "7_43":{OCD:[44,29,59], EPE:[50,35,65],SVI:[5,1,13], LNI:[1,0,6]},
+            ge8:  {OCD:[50,32,65], EPE:[38,24,53],SVI:[10,2,24], LNI:[3,0,13]} },
+    "6_8":{ le6:{OCD:[60,45,74], EPE:[40,26,54],SVI:[0,0,1],  LNI:[0,0,2]},
+            "7_34":{OCD:[49,35,62], EPE:[48,34,62],SVI:[2,0,6],  LNI:[2,0,6]},
+            "7_43":{OCD:[41,27,56], EPE:[53,38,67],SVI:[3,0,8],  LNI:[3,0,11]},
+            ge8:  {OCD:[47,32,63], EPE:[40,26,56],SVI:[5,0,16], LNI:[7,0,22]} },
+    "8_10":{le6:{OCD:[51,37,67], EPE:[47,31,61],SVI:[1,0,4],  LNI:[1,0,4]},
+            "7_34":{OCD:[38,25,52], EPE:[52,36,64],SVI:[7,2,17], LNI:[4,0,12]},
+            "7_43":{OCD:[30,19,44], EPE:[54,38,68],SVI:[9,2,21], LNI:[7,1,16]},
+            ge8:  {OCD:[31,19,46], EPE:[37,23,53],SVI:[17,4,35], LNI:[15,2,33]} },
+    ge10: { le6:{OCD:[43,30,57], EPE:[54,41,68],SVI:[1,0,4],  LNI:[1,0,5]},
+            "7_34":{OCD:[31,20,42], EPE:[58,45,70],SVI:[7,2,16], LNI:[4,0,11]},
+            "7_43":{OCD:[24,15,35], EPE:[59,46,72],SVI:[10,3,19], LNI:[7,1,16]},
+            ge8:  {OCD:[26,16,37], EPE:[41,28,56],SVI:[18,6,32], LNI:[14,3,28]} },
+  },
+  T2c: {
+    le4:  { le6:{OCD:[96,88,100],EPE:[4,0,11], SVI:[0,0,2],  LNI:null},
+            "7_34":{OCD:[92,79,99], EPE:[6,0,16], SVI:[3,0,11], LNI:null},
+            "7_43":{OCD:[88,71,99], EPE:[7,0,19], SVI:[4,0,19], LNI:null},
+            ge8:  {OCD:[87,67,99], EPE:[5,0,13], SVI:[8,0,29], LNI:null} },
+    "4_6":{ le6:{OCD:[78,66,87], EPE:[21,12,33],SVI:[1,0,2],  LNI:[0,0,1]},
+            "7_34":{OCD:[68,54,80], EPE:[27,16,41],SVI:[4,1,10], LNI:[1,0,4]},
+            "7_43":{OCD:[60,45,74], EPE:[32,19,47],SVI:[6,1,15], LNI:[2,0,7]},
+            ge8:  {OCD:[63,48,77], EPE:[22,12,36],SVI:[11,2,26], LNI:[3,0,13]} },
+    "6_8":{ le6:{OCD:[76,63,87], EPE:[23,13,36],SVI:[0,0,1],  LNI:[1,0,2]},
+            "7_34":{OCD:[66,52,78], EPE:[30,18,44],SVI:[2,0,7],  LNI:[2,0,7]},
+            "7_43":{OCD:[58,42,73], EPE:[34,20,50],SVI:[3,0,9],  LNI:[5,0,17]},
+            ge8:  {OCD:[61,44,76], EPE:[24,12,38],SVI:[6,0,17], LNI:[10,0,27]} },
+    "8_10":{le6:{OCD:[68,54,81], EPE:[29,17,43],SVI:[1,0,5],  LNI:[1,0,5]},
+            "7_34":{OCD:[53,39,68], EPE:[33,21,48],SVI:[8,2,17], LNI:[6,1,13]},
+            "7_43":{OCD:[42,29,58], EPE:[35,20,51],SVI:[11,3,25], LNI:[11,2,26]},
+            ge8:  {OCD:[39,25,56], EPE:[21,11,34],SVI:[19,5,37], LNI:[20,4,43]} },
+    ge10: { le6:{OCD:[62,48,75], EPE:[35,22,50],SVI:[2,0,5],  LNI:[2,0,6]},
+            "7_34":{OCD:[46,32,59], EPE:[39,26,53],SVI:[9,3,19], LNI:[6,1,14]},
+            "7_43":{OCD:[36,24,49], EPE:[40,26,56],SVI:[12,3,25], LNI:[11,2,26]},
+            ge8:  {OCD:[34,23,48], EPE:[25,14,39],SVI:[21,7,37], LNI:[20,6,37]} },
+  },
+};
+
+// ============================================================
+// Hopkins版 Partin データ（Tosoian 2016, Table 2）
+// [中央値, CI下限, CI上限]  null = 計算値（CI不明）
+// PSA keys: le4 / 4to6 / 6to10 / gt10
+// GG  keys: GG1 / GG2 / GG34（GG3+GG4合算）/ GG5
+// Stage: T1c / T2a / T2bc（T2b+T2c合算）
+// ============================================================
+const HOPKINS = {
   T1c: {
     le4: {
-      le6:  { OCD:[97,87,100], EPE:[3,0,6],   SVI:[0,0,1],   LNI:null },
-      "7_34":{ OCD:[95,90,99],  EPE:[4,0,10],  SVI:[1,0,4],   LNI:null },
-      "7_43":{ OCD:[93,85,99],  EPE:[5,0,12],  SVI:[2,0,7],   LNI:null },
-      ge8:  { OCD:[94,85,99],  EPE:[3,0,9],   SVI:[3,0,11],  LNI:null },
+      GG1: {OC:[92,90,93],ECE:[8,6,9],  SVI:[1,0,1], LNI:[0,0,0]},
+      GG2: {OC:[77,74,80],ECE:[20,17,23],SVI:[2,1,3], LNI:[1,0,1]},
+      GG34:{OC:[67,62,72],ECE:[24,21,28],SVI:[7,4,10],LNI:[2,1,4]},
+      GG5: {OC:[50,41,57],ECE:[31,24,39],SVI:[13,7,20],LNI:[6,3,11]},
     },
-    "4_6": {
-      le6:  { OCD:[85,80,90],  EPE:[15,10,19], SVI:[0,0,1],  LNI:[0,0,0] },
-      "7_34":{ OCD:[78,72,83],  EPE:[20,15,26], SVI:[2,0,4],  LNI:[0,0,1] },
-      "7_43":{ OCD:[72,64,80],  EPE:[25,17,32], SVI:[3,1,6],  LNI:[0,0,1] },
-      ge8:  { OCD:[77,68,85],  EPE:[17,11,24], SVI:[5,1,12], LNI:[1,0,2] },
+    "4to6": {
+      GG1: {OC:[90,89,92],ECE:[9,7,10], SVI:[1,0,1], LNI:[0,0,0]},
+      GG2: {OC:[74,71,77],ECE:[23,20,26],SVI:[2,1,3], LNI:[1,0,1]},
+      GG34:{OC:[64,null,null],ECE:[28,24,31],SVI:[6,4,9],LNI:[2,1,4]},
+      GG5: {OC:[47,39,55],ECE:[35,27,42],SVI:[12,8,19],LNI:[5,2,9]},
     },
-    "6_8": {
-      le6:  { OCD:[83,78,89],  EPE:[16,11,22], SVI:[0,0,0],  LNI:[0,0,0] },
-      "7_34":{ OCD:[76,69,83],  EPE:[22,16,29], SVI:[1,0,2],  LNI:[0,0,1] },
-      "7_43":{ OCD:[71,62,79],  EPE:[27,19,36], SVI:[1,0,4],  LNI:[1,0,3] },
-      ge8:  { OCD:[76,68,84],  EPE:[19,13,26], SVI:[3,0,7],  LNI:[2,0,5] },
+    "6to10": {
+      GG1: {OC:[87,85,89],ECE:[12,10,14],SVI:[1,1,2], LNI:[0,0,1]},
+      GG2: {OC:[67,63,71],ECE:[28,24,31],SVI:[4,2,6], LNI:[1,0,2]},
+      GG34:{OC:[53,49,58],ECE:[32,27,36],SVI:[11,8,15],LNI:[4,2,6]},
+      GG5: {OC:[35,28,44],ECE:[36,28,44],SVI:[19,12,27],LNI:[9,5,15]},
     },
-    "8_10": {
-      le6:  { OCD:[78,71,85],  EPE:[21,14,28], SVI:[1,0,2],  LNI:[0,0,1] },
-      "7_34":{ OCD:[68,59,76],  EPE:[27,19,35], SVI:[4,2,7],  LNI:[1,0,3] },
-      "7_43":{ OCD:[59,50,70],  EPE:[32,22,41], SVI:[6,2,12], LNI:[3,1,6] },
-      ge8:  { OCD:[62,51,73],  EPE:[22,14,29], SVI:[11,4,21],LNI:[5,1,14] },
-    },
-    ge10: {
-      le6:  { OCD:[72,66,79],  EPE:[27,20,33], SVI:[1,0,2],  LNI:[0,0,1] },
-      "7_34":{ OCD:[61,53,68],  EPE:[33,26,41], SVI:[5,2,8],  LNI:[1,0,3] },
-      "7_43":{ OCD:[53,45,61],  EPE:[38,30,45], SVI:[7,3,12], LNI:[3,1,5] },
-      ge8:  { OCD:[55,46,64],  EPE:[26,19,34], SVI:[13,7,21],LNI:[5,2,10] },
+    gt10: {
+      GG1: {OC:[80,75,84],ECE:[17,13,20],SVI:[3,1,4], LNI:[1,0,2]},
+      GG2: {OC:[52,46,58],ECE:[34,29,40],SVI:[8,5,12],LNI:[5,3,8]},
+      GG34:{OC:[35,30,41],ECE:[33,27,39],SVI:[20,14,27],LNI:[11,7,17]},
+      GG5: {OC:[19,13,26],ECE:[30,22,40],SVI:[28,18,38],LNI:[22,13,34]},
     },
   },
   T2a: {
     le4: {
-      le6:  { OCD:[96,90,100], EPE:[4,0,10],  SVI:[0,0,2],   LNI:null },
-      "7_34":{ OCD:[92,81,99],  EPE:[6,0,14],  SVI:[2,0,10],  LNI:null },
-      "7_43":{ OCD:[89,74,98],  EPE:[7,0,8],   SVI:[4,0,16],  LNI:null },
-      ge8:  { OCD:[88,73,99],  EPE:[5,0,12],  SVI:[7,0,23],  LNI:null },
+      GG1: {OC:[88,86,91],ECE:[11,9,13], SVI:[1,0,1], LNI:[0,0,0]},
+      GG2: {OC:[70,65,74],ECE:[27,22,31],SVI:[2,1,4], LNI:[1,0,2]},
+      GG34:{OC:[58,53,64],ECE:[31,26,36],SVI:[7,4,11],LNI:[3,1,6]},
+      GG5: {OC:[41,32,50],ECE:[38,29,48],SVI:[13,7,21],LNI:[7,3,15]},
     },
-    "4_6": {
-      le6:  { OCD:[78,70,85],  EPE:[21,14,29], SVI:[1,0,2],  LNI:[0,0,1] },
-      "7_34":{ OCD:[68,58,77],  EPE:[28,19,37], SVI:[4,1,10], LNI:[1,0,3] },
-      "7_43":{ OCD:[61,49,72],  EPE:[32,23,43], SVI:[5,1,12], LNI:[1,0,6] },
-      ge8:  { OCD:[64,52,77],  EPE:[22,14,33], SVI:[10,2,21],LNI:[3,0,10] },
+    "4to6": {
+      GG1: {OC:[87,83,89],ECE:[12,10,15],SVI:[1,0,1], LNI:[0,0,0]},
+      GG2: {OC:[66,62,71],ECE:[30,25,35],SVI:[2,1,4], LNI:[1,0,2]},
+      GG34:{OC:[55,50,61],ECE:[35,null,null],SVI:[7,4,10],LNI:[3,1,5]},
+      GG5: {OC:[38,30,48],ECE:[44,null,null],SVI:[12,7,20],LNI:[6,3,12]},
     },
-    "6_8": {
-      le6:  { OCD:[76,67,84],  EPE:[23,15,33], SVI:[0,0,1],  LNI:[0,0,2] },
-      "7_34":{ OCD:[66,55,76],  EPE:[30,21,41], SVI:[2,0,5],  LNI:[2,0,6] },
-      "7_43":{ OCD:[58,45,70],  EPE:[35,23,47], SVI:[3,0,7],  LNI:[4,0,15] },
-      ge8:  { OCD:[62,48,74],  EPE:[24,15,36], SVI:[5,0,12], LNI:[8,0,24] },
+    "6to10": {
+      GG1: {OC:[82,78,86],ECE:[16,13,20],SVI:[1,1,2], LNI:[0,0,1]},
+      GG2: {OC:[58,52,64],ECE:[36,30,42],SVI:[4,2,6], LNI:[2,1,3]},
+      GG34:{OC:[45,39,51],ECE:[39,33,45],SVI:[11,7,16],LNI:[4,2,8]},
+      GG5: {OC:[28,21,37],ECE:[42,33,53],SVI:[19,11,29],LNI:[10,5,18]},
     },
-    "8_10": {
-      le6:  { OCD:[68,58,79],  EPE:[29,20,40], SVI:[1,0,4],  LNI:[1,0,5] },
-      "7_34":{ OCD:[54,41,65],  EPE:[34,23,45], SVI:[8,2,15], LNI:[5,1,12] },
-      "7_43":{ OCD:[44,33,56],  EPE:[37,25,47], SVI:[10,4,20],LNI:[9,2,21] },
-      ge8:  { OCD:[42,30,55],  EPE:[23,15,34], SVI:[18,7,29],LNI:[18,6,34] },
-    },
-    ge10: {
-      le6:  { OCD:[62,51,71],  EPE:[36,26,47], SVI:[1,0,5],  LNI:[1,0,5] },
-      "7_34":{ OCD:[47,36,57],  EPE:[40,30,51], SVI:[8,3,18], LNI:[5,1,11] },
-      "7_43":{ OCD:[37,28,48],  EPE:[42,31,52], SVI:[11,5,21],LNI:[9,2,20] },
-      ge8:  { OCD:[36,27,47],  EPE:[27,18,37], SVI:[20,10,30],LNI:[18,8,29] },
+    gt10: {
+      GG1: {OC:[73,67,79],ECE:[22,17,28],SVI:[3,1,6], LNI:[1,0,3]},
+      GG2: {OC:[43,36,50],ECE:[42,35,49],SVI:[8,5,12],LNI:[6,2,11]},
+      GG34:{OC:[28,22,35],ECE:[39,31,47],SVI:[19,13,28],LNI:[13,6,21]},
+      GG5: {OC:[14,9,21], ECE:[34,24,46],SVI:[26,15,39],LNI:[24,12,38]},
     },
   },
-  T2b: {
+  T2bc: {
     le4: {
-      le6:  { OCD:[91,79,100], EPE:[8,0,20],  SVI:[0,0,2],   LNI:null },
-      "7_34":{ OCD:[85,68,98],  EPE:[12,0,28], SVI:[3,0,12],  LNI:null },
-      "7_43":{ OCD:[81,60,97],  EPE:[15,0,33], SVI:[5,0,18],  LNI:null },
-      ge8:  { OCD:[82,62,98],  EPE:[10,0,23], SVI:[8,0,27],  LNI:null },
+      GG1: {OC:[79,73,83],ECE:[19,15,25],SVI:[1,1,2], LNI:[1,0,2]},
+      GG2: {OC:[52,44,58],ECE:[40,32,47],SVI:[5,3,7], LNI:[4,2,7]},
+      GG34:{OC:[37,30,44],ECE:[40,33,48],SVI:[12,7,18],LNI:[10,5,16]},
+      GG5: {OC:[21,15,28],ECE:[40,30,51],SVI:[18,10,27],LNI:[21,11,33]},
     },
-    "4_6": {
-      le6:  { OCD:[63,47,75],  EPE:[37,24,52], SVI:[1,0,2],  LNI:[0,0,1] },
-      "7_34":{ OCD:[51,37,64],  EPE:[45,32,58], SVI:[4,1,10], LNI:[0,0,4] },
-      "7_43":{ OCD:[44,29,59],  EPE:[50,35,65], SVI:[5,1,13], LNI:[1,0,6] },
-      ge8:  { OCD:[50,32,65],  EPE:[38,24,53], SVI:[10,2,24],LNI:[3,0,13] },
+    "4to6": {
+      GG1: {OC:[76,69,81],ECE:[22,17,28],SVI:[1,1,2], LNI:[0,0,2]},
+      GG2: {OC:[48,41,55],ECE:[44,37,51],SVI:[4,2,7], LNI:[4,2,7]},
+      GG34:{OC:[35,28,42],ECE:[44,37,52],SVI:[9,5,15], LNI:[9,5,15]},
+      GG5: {OC:[20,14,27],ECE:[44,34,54],SVI:[17,10,26],LNI:[19,10,29]},
     },
-    "6_8": {
-      le6:  { OCD:[60,45,74],  EPE:[40,26,54], SVI:[0,0,1],  LNI:[0,0,2] },
-      "7_34":{ OCD:[49,35,62],  EPE:[48,34,62], SVI:[2,0,6],  LNI:[2,0,6] },
-      "7_43":{ OCD:[41,27,56],  EPE:[53,38,67], SVI:[3,0,8],  LNI:[3,0,11] },
-      ge8:  { OCD:[47,32,63],  EPE:[40,26,56], SVI:[5,0,16], LNI:[7,0,22] },
+    "6to10": {
+      GG1: {OC:[69,61,75],ECE:[27,21,34],SVI:[3,1,5], LNI:[1,0,4]},
+      GG2: {OC:[38,31,45],ECE:[49,null,null],SVI:[7,4,12],LNI:[6,3,12]},
+      GG34:{OC:[25,19,31],ECE:[44,36,51],SVI:[17,11,24],LNI:[14,8,22]},
+      GG5: {OC:[13,8,18], ECE:[41,null,null],SVI:[20,null,null],LNI:[26,15,40]},
     },
-    "8_10": {
-      le6:  { OCD:[51,37,67],  EPE:[47,31,61], SVI:[1,0,4],  LNI:[1,0,4] },
-      "7_34":{ OCD:[38,25,52],  EPE:[52,36,64], SVI:[7,2,17], LNI:[4,0,12] },
-      "7_43":{ OCD:[30,19,44],  EPE:[54,38,68], SVI:[9,2,21], LNI:[7,1,16] },
-      ge8:  { OCD:[31,19,46],  EPE:[37,23,53], SVI:[17,4,35],LNI:[15,2,33] },
-    },
-    ge10: {
-      le6:  { OCD:[43,30,57],  EPE:[54,41,68], SVI:[1,0,4],  LNI:[1,0,5] },
-      "7_34":{ OCD:[31,20,42],  EPE:[58,45,70], SVI:[7,2,16], LNI:[4,0,11] },
-      "7_43":{ OCD:[24,15,35],  EPE:[59,46,72], SVI:[10,3,19],LNI:[7,1,16] },
-      ge8:  { OCD:[26,16,37],  EPE:[41,28,56], SVI:[18,6,32],LNI:[14,3,28] },
-    },
-  },
-  T2c: {
-    le4: {
-      le6:  { OCD:[96,88,100], EPE:[4,0,11],  SVI:[0,0,2],   LNI:null },
-      "7_34":{ OCD:[92,79,99],  EPE:[6,0,16],  SVI:[3,0,11],  LNI:null },
-      "7_43":{ OCD:[88,71,99],  EPE:[7,0,19],  SVI:[4,0,19],  LNI:null },
-      ge8:  { OCD:[87,67,99],  EPE:[5,0,13],  SVI:[8,0,29],  LNI:null },
-    },
-    "4_6": {
-      le6:  { OCD:[78,66,87],  EPE:[21,12,33], SVI:[1,0,2],  LNI:[0,0,1] },
-      "7_34":{ OCD:[68,54,80],  EPE:[27,16,41], SVI:[4,1,10], LNI:[1,0,4] },
-      "7_43":{ OCD:[60,45,74],  EPE:[32,19,47], SVI:[6,1,15], LNI:[2,0,7] },
-      ge8:  { OCD:[63,48,77],  EPE:[22,12,36], SVI:[11,2,26],LNI:[3,0,13] },
-    },
-    "6_8": {
-      le6:  { OCD:[76,63,87],  EPE:[23,13,36], SVI:[0,0,1],  LNI:[1,0,2] },
-      "7_34":{ OCD:[66,52,78],  EPE:[30,18,44], SVI:[2,0,7],  LNI:[2,0,7] },
-      "7_43":{ OCD:[58,42,73],  EPE:[34,20,50], SVI:[3,0,9],  LNI:[5,0,17] },
-      ge8:  { OCD:[61,44,76],  EPE:[24,12,38], SVI:[6,0,17], LNI:[10,0,27] },
-    },
-    "8_10": {
-      le6:  { OCD:[68,54,81],  EPE:[29,17,43], SVI:[1,0,5],  LNI:[1,0,5] },
-      "7_34":{ OCD:[53,39,68],  EPE:[33,21,48], SVI:[8,2,17], LNI:[6,1,13] },
-      "7_43":{ OCD:[42,29,58],  EPE:[35,20,51], SVI:[11,3,25],LNI:[11,2,26] },
-      ge8:  { OCD:[39,25,56],  EPE:[21,11,34], SVI:[19,5,37],LNI:[20,4,43] },
-    },
-    ge10: {
-      le6:  { OCD:[62,48,75],  EPE:[35,22,50], SVI:[2,0,5],  LNI:[2,0,6] },
-      "7_34":{ OCD:[46,32,59],  EPE:[39,26,53], SVI:[9,3,19], LNI:[6,1,14] },
-      "7_43":{ OCD:[36,24,49],  EPE:[40,26,56], SVI:[12,3,25],LNI:[11,2,26] },
-      ge8:  { OCD:[34,23,48],  EPE:[25,14,39], SVI:[21,7,37],LNI:[20,6,37] },
+    gt10: {
+      GG1: {OC:[54,45,63],ECE:[34,26,42],SVI:[6,3,10],LNI:[5,1,14]},
+      GG2: {OC:[23,17,29],ECE:[46,37,55],SVI:[12,7,20],LNI:[18,9,30]},
+      GG34:{OC:[12,8,16], ECE:[33,25,43],SVI:[22,14,32],LNI:[32,21,44]},
+      GG5: {OC:[5,3,8],   ECE:[23,16,34],SVI:[23,14,36],LNI:[48,32,62]},
     },
   },
 };
 
-// GS入力値 → Partinデータキーのマッピング（GS8とGS9-10は同一バケット）
-const GS_DATA_KEY = { le6:'le6', '7_34':'7_34', '7_43':'7_43', '8':'ge8', '9_10':'ge8' };
+// ============================================================
+// マッピング定数
+// ============================================================
+// Naito: PSA入力値 → データキー
+const NAITO_PSA = { le4:'le4', '4_6':'4_6', '6_8':'6_8', '8_10':'8_10',
+                    '10to20':'ge10', '20to40':'ge10', gt40:'ge10' };
+// Naito: GS入力値 → データキー（GS8とGS9-10は同一バケット）
+const NAITO_GS  = { le6:'le6', '7_34':'7_34', '7_43':'7_43', '8':'ge8', '9_10':'ge8' };
 
-const STAGE_LABEL = { T1c:'T1c', T2a:'T2a', T2b:'T2b', T2c:'T2c' };
-const PSA_LABEL   = { le4:'≤ 4.0 ng/mL', '4_6':'4.1〜6.0 ng/mL', '6_8':'6.1〜8.0 ng/mL', '8_10':'8.1〜10.0 ng/mL', ge10:'≥ 10.1 ng/mL' };
-const GS_LABEL    = { le6:'≤ 6（GG1）', '7_34':'7(3+4)（GG2）', '7_43':'7(4+3)（GG3）', '8':'8（GG4）', '9_10':'9〜10（GG5）' };
+// Hopkins: PSA入力値 → データキー
+const HOPK_PSA  = { le4:'le4', '4_6':'4to6', '6_8':'6to10', '8_10':'6to10',
+                    '10to20':'gt10', '20to40':'gt10', gt40:'gt10' };
+// Hopkins: Stage入力値 → データキー（T2b/c合算）
+const HOPK_STG  = { T1c:'T1c', T2a:'T2a', T2b:'T2bc', T2c:'T2bc' };
+// Hopkins: GS入力値 → データキー（GG3/GG4合算）
+const HOPK_GG   = { le6:'GG1', '7_34':'GG2', '7_43':'GG34', '8':'GG34', '9_10':'GG5' };
+
+const STAGE_LABEL = { T1c:'T1c', T2a:'T2a', T2b:'T2b', T2c:'T2c', T3a:'T3a', T3b:'T3b' };
+const PSA_LABEL   = { le4:'≤4.0', '4_6':'4.1〜6.0', '6_8':'6.1〜8.0', '8_10':'8.1〜10.0',
+                      '10to20':'10.1〜20.0', '20to40':'20.1〜40.0', gt40:'>40.0' };
+const GS_LABEL    = { le6:'≤6（GG1）', '7_34':'7(3+4)（GG2）', '7_43':'7(4+3)（GG3）',
+                      '8':'8（GG4）', '9_10':'9〜10（GG5）' };
 
 // ============================================================
 // NCCN リスク分類（v5.2026）
 // ============================================================
 function getNccnRisk(stage, psa, gs) {
-  const psaLow  = psa !== 'ge10';
-  const psaHigh = psa === 'ge10';
-  const stageHR  = stage === 'T3a' || stage === 'T3b'; // High risk criterion
-  const stageIRF = stage === 'T2b' || stage === 'T2c'; // Intermediate risk factor
   const gg = { le6:1, '7_34':2, '7_43':3, '8':4, '9_10':5 }[gs];
   const ggLabel = 'Grade Group ' + gg;
 
-  // ── T3a / T3b（High risk criterion） ──
-  if (stageHR) {
-    if (gg >= 4) {
-      // T3 + GG4/5 = 2基準 → Very High
-      return {
-        label: 'Very High', color: '#553c9a', bg: '#faf5ff', border: '#b794f4',
-        sub: stage + ' + GG' + gg + ' = 2基準（cT3-T4 + GG4/5）→ Very High',
-        gg: ggLabel
-      };
+  const psaLt10   = ['le4','4_6','6_8','8_10'].includes(psa);
+  const psa10to20 = psa === '10to20';
+  const psaGt20   = psa === '20to40' || psa === 'gt40';
+  const psaGt40   = psa === 'gt40';
+
+  const hrStage  = stage === 'T3a';
+  const vhStage  = stage === 'T3b';
+  const irfStage = stage === 'T2b' || stage === 'T2c';
+
+  // High risk criteria count (T3a / GG4 / PSA>20)
+  const hrC = (hrStage?1:0) + (gg===4?1:0) + (psaGt20?1:0);
+
+  // Very High
+  if (vhStage || gg===5 || hrC>=2) {
+    let sub;
+    if (vhStage)
+      sub = 'cT3b = Very High risk criterion';
+    else if (gg===5)
+      sub = 'GG5（primary Gleason pattern 5）= Very High risk criterion';
+    else {
+      const p = [];
+      if (hrStage) p.push('cT3a');
+      if (gg===4)  p.push('GG4');
+      if (psaGt20) p.push('PSA >' + (psaGt40?'40':'20') + ' ng/mL');
+      sub = p.join(' + ') + ' → 高リスク因子 2基準 → Very High Risk';
     }
-    if (psaHigh) {
-      // T3 + PSA≥10.1（PSA>40なら2基準）
-      return {
-        label: 'High / Very High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
-        sub: stage + ' = High risk criterion\nPSA >40 の場合 Very High（' + stage + ' + PSA>40 = 2基準）',
-        gg: ggLabel
-      };
-    }
-    // T3 + GG1-3 + PSA<10 → High（1基準）
+    return { label:'Very High', color:'#553c9a', bg:'#faf5ff', border:'#b794f4', sub, gg:ggLabel };
+  }
+
+  // High（1基準）
+  if (hrStage || gg===4 || psaGt20) {
+    const p = [];
+    if (hrStage) p.push('cT3a');
+    if (gg===4)  p.push('GG4');
+    if (psaGt20) p.push('PSA >' + (psaGt40?'40':'20') + ' ng/mL');
     return {
-      label: 'High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
-      sub: stage + ' = High risk criterion（1基準）',
+      label:'High', color:'#9b2335', bg:'#fff5f5', border:'#fc8181',
+      sub: p.join(' + ') + ' = High risk criterion（1基準）',
       gg: ggLabel
     };
   }
 
-  // ── T1c/T2: GG4 or GG5（High risk criterion） ──
-  if (gg >= 4) {
-    if (psaHigh) {
-      return {
-        label: 'High / Very High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
-        sub: 'GG' + gg + ' = High risk criterion\nPSA >40 の場合 Very High（GG' + gg + ' + PSA>40 = 2基準）',
-        gg: ggLabel
-      };
-    }
+  // GG3 → 常に Unfavorable Intermediate
+  if (gg===3) {
     return {
-      label: 'High', color: '#9b2335', bg: '#fff5f5', border: '#fc8181',
-      sub: 'GG' + gg + ' = High risk criterion（1基準）',
+      label:'Intermediate Unfavorable', color:'#c05621', bg:'#fffaf0', border:'#f6ad55',
+      sub: 'GG3（4+3=7）は陽性コア割合に関わらず Unfavorable Intermediate',
       gg: ggLabel
     };
   }
 
-  // ── GG3: 常にUnfavorable Intermediate ──
-  if (gg === 3) {
-    if (psaHigh) {
-      return {
-        label: 'Intermediate Unfavorable', color: '#c05621', bg: '#fffaf0', border: '#f6ad55',
-        sub: 'GG3 は陽性コア数に関わらず Unfavorable\nPSA >20 の場合 High risk',
-        gg: ggLabel
-      };
-    }
+  // IRF集計（GG1/GG2 の場合）
+  const irfList = [];
+  if (irfStage)  irfList.push('cT2b-T2c');
+  if (gg===2)    irfList.push('Grade Group 2');
+  if (psa10to20) irfList.push('PSA 10〜20 ng/mL');
+  const irfC = irfList.length;
+
+  if (irfC===0) {
     return {
-      label: 'Intermediate Unfavorable', color: '#c05621', bg: '#fffaf0', border: '#f6ad55',
-      sub: 'GG3 は陽性コア数に関わらず Unfavorable',
+      label:'Low', color:'#276749', bg:'#f0fff4', border:'#68d391',
+      sub: 'cT1c〜T2a・PSA <10 ng/mL・GG1 — すべて低リスク基準を満たす',
       gg: ggLabel
     };
   }
-
-  // ── GG1 or GG2（T1c/T2） ──
-  const gsIRF   = gg === 2;
-  const knownIRF = (stageIRF ? 1 : 0) + (gsIRF ? 1 : 0);
-
-  if (psaLow) {
-    if (knownIRF === 0) {
-      return {
-        label: 'Low', color: '#276749', bg: '#f0fff4', border: '#68d391',
-        sub: 'cT1c〜T2a・PSA <10・GG1 — すべて低リスク基準を満たす',
-        gg: ggLabel
-      };
-    }
-    if (knownIRF === 1) {
-      return {
-        label: 'Intermediate', color: '#b7791f', bg: '#fffff0', border: '#f6e05e',
-        sub: 'Favorable（陽性コア <50%）\nUnfavorable（陽性コア ≥50%）',
-        gg: ggLabel
-      };
-    }
+  if (irfC===1) {
     return {
-      label: 'Intermediate Unfavorable', color: '#c05621', bg: '#fffaf0', border: '#f6ad55',
-      sub: 'IRF 2つ（Stage + GG2）',
-      gg: ggLabel
-    };
-  }
-
-  // PSA ≥10.1（閾値またぎ）
-  if (knownIRF === 0) {
-    return {
-      label: 'Intermediate / High', color: '#c05621', bg: '#fffaf0', border: '#f6ad55',
-      sub: 'PSA 10〜20: Favorable（<50%コア）or Unfavorable（≥50%コア）\nPSA >20: High risk',
+      label:'Intermediate', color:'#b7791f', bg:'#fffff0', border:'#f6e05e',
+      sub: '中間リスク因子（IRF）1つ：' + irfList[0] + '\n陽性コア <50% → Favorable / ≥50% → Unfavorable',
       gg: ggLabel
     };
   }
   return {
-    label: 'Intermediate Unfavorable / High', color: '#c05621', bg: '#fffaf0', border: '#f6ad55',
-    sub: 'PSA 10〜20: Unfavorable\nPSA >20: High risk',
+    label:'Intermediate Unfavorable', color:'#c05621', bg:'#fffaf0', border:'#f6ad55',
+    sub: 'IRF ' + irfC + 'つ（' + irfList.join('・') + '）→ Unfavorable Intermediate',
     gg: ggLabel
   };
+}
+
+// ============================================================
+// バー描画ヘルパー
+// ============================================================
+function setBar(pre, id, val) {
+  const ep = document.getElementById(pre + id + '-pct');
+  const ec = document.getElementById(pre + id + '-ci');
+  const eb = document.getElementById(pre + id + '-bar');
+  if (!val) {
+    ep.textContent = '—';
+    ec.innerHTML = '<span class="na-box">報告なし</span>';
+    eb.style.width = '0%';
+  } else if (val[1] === null) {
+    ep.textContent = val[0] + '%';
+    ec.textContent = '（計算値・CI不明）';
+    eb.style.width = Math.min(val[0],100) + '%';
+  } else {
+    ep.textContent = val[0] + '%';
+    ec.textContent = '95% CI: ' + val[1] + '〜' + val[2] + '%';
+    eb.style.width = Math.min(val[0],100) + '%';
+  }
 }
 
 // ============================================================
@@ -618,63 +604,70 @@ function calculate() {
   const isT3 = stage === 'T3a' || stage === 'T3b';
 
   // サマリー
-  let summaryNote = '';
-  if (!isT3 && (gs === '8' || gs === '9_10')) {
-    summaryNote = '<br><span style="font-size:0.78rem;color:#718096">※ GS 8とGS 9〜10はPartin確率が同一バケット（≥8）のため同値です</span>';
-  }
   document.getElementById('summary-box').innerHTML =
     '<strong>入力値：</strong> Stage <strong>' + STAGE_LABEL[stage] +
-    '</strong>　PSA <strong>' + PSA_LABEL[psa] +
-    '</strong>　GS <strong>' + GS_LABEL[gs] + '</strong>' + summaryNote;
+    '</strong>　PSA <strong>' + PSA_LABEL[psa] + ' ng/mL' +
+    '</strong>　GS <strong>' + GS_LABEL[gs] + '</strong>';
 
-  // NCCN リスク
+  // NCCN
   const nccn = getNccnRisk(stage, psa, gs);
-  const box = document.getElementById('nccn-box');
-  box.style.background    = nccn.bg;
-  box.style.borderColor   = nccn.border;
-  box.style.color         = nccn.color;
+  const box  = document.getElementById('nccn-box');
+  box.style.background  = nccn.bg;
+  box.style.borderColor = nccn.border;
+  box.style.color       = nccn.color;
   document.getElementById('nccn-label').textContent = nccn.label;
-  document.getElementById('nccn-sub').innerHTML = nccn.sub.replace(/\n/g, '<br>');
+  document.getElementById('nccn-sub').innerHTML = nccn.sub.replace(/\n/g,'<br>');
   document.getElementById('nccn-gg').textContent = nccn.gg;
 
-  // Partin 確率表示
+  // Partin
   if (isT3) {
     document.getElementById('partin-na').style.display = 'block';
-    document.getElementById('partin-bars').style.display = 'none';
+    document.getElementById('partin-cols').style.display = 'none';
   } else {
     document.getElementById('partin-na').style.display = 'none';
-    document.getElementById('partin-bars').style.display = 'block';
-    const dataKey = GS_DATA_KEY[gs];
-    const d = DATA[stage][psa][dataKey];
-    setResult('ocd', d.OCD);
-    setResult('epe', d.EPE);
-    setResult('svi', d.SVI);
-    if (d.LNI === null) {
-      document.getElementById('lni-pct').textContent = '—';
-      document.getElementById('lni-ci').innerHTML = '<span class="na-box">PSA ≤ 4.0 ng/mL では報告なし</span>';
-      document.getElementById('lni-bar').style.width = '0%';
-    } else {
-      setResult('lni', d.LNI);
-    }
+    document.getElementById('partin-cols').style.display = 'grid';
+
+    // ── 日本版 Naito ──
+    const nPSA = NAITO_PSA[psa];
+    const nGS  = NAITO_GS[gs];
+    const nd   = NAITO[stage][nPSA][nGS];
+    setBar('naito-', 'ocd', nd.OCD);
+    setBar('naito-', 'epe', nd.EPE);
+    setBar('naito-', 'svi', nd.SVI);
+    setBar('naito-', 'lni', nd.LNI);
+
+    const nNotes = [];
+    if (['10to20','20to40','gt40'].includes(psa)) nNotes.push('PSA ≥10.1バケットを使用');
+    if (gs==='9_10') nNotes.push('GS9〜10はGS8と同一バケット（≥8）を使用');
+    document.getElementById('naito-note').textContent = nNotes.length ? '※ '+nNotes.join('、') : '';
+
+    // ── Hopkins版 ──
+    const hPSA = HOPK_PSA[psa];
+    const hSTG = HOPK_STG[stage];
+    const hGG  = HOPK_GG[gs];
+    const hd   = HOPKINS[hSTG][hPSA][hGG];
+    setBar('hopkins-', 'ocd', hd.OC);
+    setBar('hopkins-', 'epe', hd.ECE);
+    setBar('hopkins-', 'svi', hd.SVI);
+    setBar('hopkins-', 'lni', hd.LNI);
+
+    const hNotes = [];
+    if (stage==='T2b'||stage==='T2c') hNotes.push('T2b/cを合算したデータを使用');
+    if (gs==='7_43'||gs==='8')        hNotes.push('GG3・GG4を合算したデータを使用');
+    if (['6_8','8_10'].includes(psa)) hNotes.push('Hopkins 6.1〜10.0バケットを使用');
+    if (['10to20','20to40','gt40'].includes(psa)) hNotes.push('Hopkins >10バケットを使用');
+    document.getElementById('hopkins-note').textContent = hNotes.length ? '※ '+hNotes.join('、') : '';
   }
 
   const rc = document.getElementById('result-card');
   rc.style.display = 'block';
-  rc.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function setResult(id, v) {
-  document.getElementById(id + '-pct').textContent = v[0] + '%';
-  document.getElementById(id + '-ci').textContent  = '95% CI: ' + v[1] + ' 〜 ' + v[2] + '%';
-  document.getElementById(id + '-bar').style.width = Math.min(v[0], 100) + '%';
+  rc.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 </script>
 
 <script>
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js');
-    });
+    window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
   }
 </script>
 </body>
