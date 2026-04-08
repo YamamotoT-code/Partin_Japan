@@ -19,7 +19,7 @@
     header h1 { font-size:1.4rem; font-weight:700; margin-bottom:6px; }
     header p  { font-size:0.82rem; opacity:0.85; }
 
-    .lang-toggle { position:absolute; top:14px; right:14px; display:flex; gap:4px; }
+    .lang-toggle { display:flex; justify-content:center; gap:4px; margin-top:10px; }
     .lang-btn { background:rgba(255,255,255,0.15); color:white; border:1.5px solid rgba(255,255,255,0.45); border-radius:6px; padding:4px 11px; font-size:0.78rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
     .lang-btn.active { background:white; color:#1a3a5c; border-color:white; }
 
@@ -98,6 +98,7 @@
   </div>
 </header>
 
+
 <div class="container">
 
   <div class="card">
@@ -170,48 +171,6 @@
       <div id="partin-cols" class="partin-cols">
 
         <div class="partin-col">
-          <div class="col-header naito-header">
-            <div class="col-title" data-i18n="naitoColTitle">日本版 Partin Tables</div>
-            <div class="col-sub">Naito et al. J Urol 2008</div>
-          </div>
-          <div class="col-body">
-            <div class="result-item-sm">
-              <div class="result-header-sm">
-                <div class="result-label-sm">OCD<span data-i18n="ocdSub">臓器限局</span></div>
-                <div class="result-pct-sm color-ocd" id="naito-ocd-pct"></div>
-              </div>
-              <div class="bar-track"><div class="bar-fill bar-ocd" id="naito-ocd-bar" style="width:0%"></div></div>
-              <div class="result-ci-sm" id="naito-ocd-ci"></div>
-            </div>
-            <div class="result-item-sm">
-              <div class="result-header-sm">
-                <div class="result-label-sm">EPE<span data-i18n="epeSub">前立腺外浸潤</span></div>
-                <div class="result-pct-sm color-epe" id="naito-epe-pct"></div>
-              </div>
-              <div class="bar-track"><div class="bar-fill bar-epe" id="naito-epe-bar" style="width:0%"></div></div>
-              <div class="result-ci-sm" id="naito-epe-ci"></div>
-            </div>
-            <div class="result-item-sm">
-              <div class="result-header-sm">
-                <div class="result-label-sm">SVI<span data-i18n="sviSub">精嚢浸潤</span></div>
-                <div class="result-pct-sm color-svi" id="naito-svi-pct"></div>
-              </div>
-              <div class="bar-track"><div class="bar-fill bar-svi" id="naito-svi-bar" style="width:0%"></div></div>
-              <div class="result-ci-sm" id="naito-svi-ci"></div>
-            </div>
-            <div class="result-item-sm">
-              <div class="result-header-sm">
-                <div class="result-label-sm">LNI<span data-i18n="lniSub">リンパ節転移</span></div>
-                <div class="result-pct-sm color-lni" id="naito-lni-pct"></div>
-              </div>
-              <div class="bar-track"><div class="bar-fill bar-lni" id="naito-lni-bar" style="width:0%"></div></div>
-              <div class="result-ci-sm" id="naito-lni-ci"></div>
-            </div>
-          </div>
-          <div class="table-note" id="naito-note"></div>
-        </div>
-
-        <div class="partin-col">
           <div class="col-header hopkins-header">
             <div class="col-title" data-i18n="hopkinsColTitle">Hopkins版 Partin Tables</div>
             <div class="col-sub">Tosoian et al. BJU Int 2017</div>
@@ -251,6 +210,48 @@
             </div>
           </div>
           <div class="table-note" id="hopkins-note"></div>
+        </div>
+
+        <div class="partin-col">
+          <div class="col-header naito-header">
+            <div class="col-title" data-i18n="naitoColTitle">日本版 Partin Tables</div>
+            <div class="col-sub">Naito et al. J Urol 2008</div>
+          </div>
+          <div class="col-body">
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">OCD<span data-i18n="ocdSub">臓器限局</span></div>
+                <div class="result-pct-sm color-ocd" id="naito-ocd-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-ocd" id="naito-ocd-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="naito-ocd-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">EPE<span data-i18n="epeSub">前立腺外浸潤</span></div>
+                <div class="result-pct-sm color-epe" id="naito-epe-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-epe" id="naito-epe-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="naito-epe-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">SVI<span data-i18n="sviSub">精嚢浸潤</span></div>
+                <div class="result-pct-sm color-svi" id="naito-svi-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-svi" id="naito-svi-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="naito-svi-ci"></div>
+            </div>
+            <div class="result-item-sm">
+              <div class="result-header-sm">
+                <div class="result-label-sm">LNI<span data-i18n="lniSub">リンパ節転移</span></div>
+                <div class="result-pct-sm color-lni" id="naito-lni-pct"></div>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-lni" id="naito-lni-bar" style="width:0%"></div></div>
+              <div class="result-ci-sm" id="naito-lni-ci"></div>
+            </div>
+          </div>
+          <div class="table-note" id="naito-note"></div>
         </div>
 
       </div>
