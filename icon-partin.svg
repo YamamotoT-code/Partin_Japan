@@ -1,10 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="80" fill="#1a3a5c"/>
-  <text x="256" y="180" font-family="Arial,sans-serif" font-size="100" font-weight="bold"
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a3a5c"/>
+      <stop offset="100%" style="stop-color:#2b6cb0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="80" fill="url(#bg)"/>
+  <text x="256" y="175" font-family="Arial,sans-serif" font-size="108" font-weight="bold"
         fill="white" text-anchor="middle">Partin</text>
-  <line x1="60" y1="220" x2="452" y2="220" stroke="#2b6cb0" stroke-width="6"/>
-  <text x="256" y="310" font-family="Arial,sans-serif" font-size="72" font-weight="bold"
-        fill="#90cdf4" text-anchor="middle">Japan</text>
-  <text x="256" y="390" font-family="Arial,sans-serif" font-size="52"
-        fill="#63b3ed" text-anchor="middle">前立腺癌</text>
+  <rect x="60" y="200" width="392" height="5" rx="2" fill="#90cdf4" opacity="0.7"/>
+  <text x="256" y="295" font-family="Arial,sans-serif" font-size="82" font-weight="bold"
+        fill="#90cdf4" text-anchor="middle">&amp; NCCN</text>
+  <text x="256" y="385" font-family="Arial,sans-serif" font-size="56" font-weight="600"
+        fill="#63b3ed" text-anchor="middle">Risk Calc</text>
 </svg>
