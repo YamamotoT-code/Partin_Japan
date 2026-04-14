@@ -23,6 +23,9 @@
     .lang-btn { background:rgba(255,255,255,0.15); color:white; border:1.5px solid rgba(255,255,255,0.45); border-radius:6px; padding:4px 11px; font-size:0.78rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
     .lang-btn.active { background:white; color:#1a3a5c; border-color:white; }
 
+    .ver-btn { background:rgba(255,255,255,0.15); color:white; border:1.5px solid rgba(255,255,255,0.4); border-radius:4px; padding:3px 9px; font-size:0.68rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .ver-btn.active { background:white; color:#822727; border-color:white; }
+
     .container { max-width:820px; margin:0 auto; padding:24px 16px 48px; }
     .card { background:white; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); padding:24px; margin-bottom:20px; }
     .card h2 { font-size:1rem; font-weight:700; color:#1a3a5c; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #ebf0f7; }
@@ -120,7 +123,8 @@
         <label>PSA (ng/mL)</label>
         <select id="psa">
           <option value="" data-i18n="selectDefault">選択してください</option>
-          <option value="le4">≤ 4.0</option>
+          <option value="le2_5">≤ 2.5</option>
+          <option value="2to4">2.6 – 4.0</option>
           <option value="4_6">4.1 – 6.0</option>
           <option value="6_8">6.1 – 8.0</option>
           <option value="8_10">8.1 – 10.0</option>
@@ -173,7 +177,11 @@
         <div class="partin-col">
           <div class="col-header hopkins-header">
             <div class="col-title" data-i18n="hopkinsColTitle">Hopkins版 Partin Tables</div>
-            <div class="col-sub">Tosoian et al. BJU Int 2017</div>
+            <div style="display:flex;gap:4px;margin-top:7px;">
+              <button class="ver-btn active" id="btn-tosoian" onclick="setHopkinsVer('tosoian')">2016</button>
+              <button class="ver-btn" id="btn-eifler" onclick="setHopkinsVer('eifler')">2012</button>
+            </div>
+            <div class="col-sub" id="hopkins-ref">Tosoian et al. BJU Int 2017</div>
           </div>
           <div class="col-body">
             <div class="result-item-sm">
@@ -266,7 +274,8 @@
 <footer>
   <div style="color:#fc8181;font-weight:600;margin-bottom:6px" data-i18n="disclaimerFooter"></div>
   Japanese version: Naito S, et al. <em>J Urol</em> 2008; 180(3): 904–910. PMID: 18635221<br>
-  Hopkins version: Tosoian JJ, et al. <em>BJU Int</em> 2017; 119(5): 676–683. PMID: 27523132<br>
+  Hopkins 2016: Tosoian JJ, et al. <em>BJU Int</em> 2017; 119(5): 676–683. PMID: 27367645<br>
+  Hopkins 2012: Eifler JB, et al. <em>BJU Int</em> 2013; 111(1): 22–29. DOI: 10.1111/j.1464-410X.2012.11324.x<br>
   NCCN Clinical Practice Guidelines in Oncology® Prostate Cancer Version 5.2026
 </footer>
 
@@ -275,11 +284,22 @@
 // i18n
 // ============================================================
 let lang = 'en';
+let hopkinsVer = 'tosoian';
+
+function setHopkinsVer(ver) {
+  hopkinsVer = ver;
+  document.getElementById('btn-tosoian').classList.toggle('active', ver === 'tosoian');
+  document.getElementById('btn-eifler').classList.toggle('active', ver === 'eifler');
+  document.getElementById('hopkins-ref').textContent = ver === 'tosoian'
+    ? 'Tosoian et al. BJU Int 2017'
+    : 'Eifler et al. BJU Int 2013';
+  if (document.getElementById('result-card').style.display !== 'none') calculate();
+}
 
 const T = {
   jp: {
     h1:             '前立腺癌 Partin Tables 計算ツール',
-    headerSub:      '日本版（Naito 2008）・Hopkins版（Tosoian 2016）・NCCN v5.2026 リスク分類',
+    headerSub:      '日本版（Naito 2008）・Hopkins版（Tosoian 2016 / Eifler 2012）・NCCN v5.2026 リスク分類',
     formTitle:      '術前データ入力',
     labelStage:     'Clinical Stage',
     selectDefault:  '選択してください',
@@ -301,10 +321,12 @@ const T = {
     naitoNote10:   'PSA ≥10.1バケットを使用',
     naitoNoteGS:   'GS9〜10はGS8と同一バケット（≥8）を使用',
     hopkinsNoteT2bc: 'T2b/cを合算したデータを使用',
-    hopkinsNoteGG34: 'GG3・GG4を合算したデータを使用',
-    hopkinsNote610:  'Hopkins 6.1〜10.0バケットを使用',
-    hopkinsNoteGt10: 'Hopkins >10バケットを使用',
-    warning: '※ 日本版：Naito 2008 Table 3〜6 に基づきます。PSA ≤4.0 の LNI は報告なし。GS 9〜10 は GS 8 と同一バケット。<br>※ Hopkins版：Tosoian 2016 Table 2 に基づきます。T2b/T2c は合算データ。GG3（4+3）と GG4（GS8）は合算データ。<br>※ NCCN v5.2026。陽性コア割合（50%前後）が Favorable/Unfavorable の分岐に影響します。',
+    hopkinsNoteGG34: 'GG3・GG4を合算したデータを使用（Tosoian 2016）',
+    hopkinsNote610:  '6.1〜10.0バケットを使用',
+    hopkinsNoteGt10: '>10バケットを使用',
+    hopkinsNoteLe4:  '≤4.0バケットを使用（Tosoian 2016はPSA 2.5以下を区別しない）',
+    naitoNoteLe4:    '≤4.0バケットを使用',
+    warning: '※ 日本版：Naito 2008 Table 3〜6 に基づきます。PSA ≤4.0 の LNI は報告なし。GS 9〜10 は GS 8 と同一バケット。<br>※ Hopkins版（Tosoian 2016）：T2b/T2c は合算データ。GG3（4+3）と GG4（GS8）は合算データ。PSA 0–4.0 は一括バケット。<br>※ Hopkins版（Eifler 2012）：T2b/T2c は合算データ。GG3（4+3）と GG4（GS8）は個別計算。PSA 0–2.5 と 2.6–4.0 は別バケット。<br>※ NCCN v5.2026。陽性コア割合（50%前後）が Favorable/Unfavorable の分岐に影響します。',
     disclaimer: '⚠️ 本ツールは教育・参考目的のみです。臨床判断は必ず担当医師が行ってください。本ツールの使用による結果について開発者は一切の責任を負いません。',
     disclaimerFooter: '⚠️ 本ツールは教育・参考目的のみです。臨床判断は必ず担当医師が行ってください。',
     // NCCN sub-text
@@ -324,7 +346,7 @@ const T = {
   },
   en: {
     h1:             'Prostate Cancer Partin Tables Calculator',
-    headerSub:      'Japanese Version (Naito 2008) · Hopkins Version (Tosoian 2016) · NCCN v5.2026 Risk Classification',
+    headerSub:      'Japanese Version (Naito 2008) · Hopkins Version (Tosoian 2016 / Eifler 2012) · NCCN v5.2026 Risk Classification',
     formTitle:      'Preoperative Data Input',
     labelStage:     'Clinical Stage',
     selectDefault:  'Please select',
@@ -349,10 +371,12 @@ const T = {
     naitoNote10:   'Uses PSA ≥10.1 bucket',
     naitoNoteGS:   'GS 9–10 uses same bucket as GS 8 (≥8)',
     hopkinsNoteT2bc: 'Uses combined T2b/T2c data',
-    hopkinsNoteGG34: 'Uses combined GG3/GG4 data',
-    hopkinsNote610:  'Uses Hopkins 6.1–10.0 bucket',
-    hopkinsNoteGt10: 'Uses Hopkins >10 bucket',
-    warning: '※ Japanese version: Based on Naito 2008 Tables 3–6. LNI not reported for PSA ≤4.0. GS 9–10 uses same bucket as GS 8.<br>※ Hopkins version: Based on Tosoian 2016 Table 2. T2b/T2c combined. GG3 (4+3) and GG4 (GS8) combined.<br>※ NCCN v5.2026. Positive core percentage (~50%) affects Favorable/Unfavorable distinction.',
+    hopkinsNoteGG34: 'Uses combined GG3/GG4 data (Tosoian 2016)',
+    hopkinsNote610:  'Uses 6.1–10.0 bucket',
+    hopkinsNoteGt10: 'Uses >10 bucket',
+    hopkinsNoteLe4:  'Uses ≤4.0 bucket (Tosoian 2016 does not distinguish PSA ≤2.5)',
+    naitoNoteLe4:    'Uses ≤4.0 bucket',
+    warning: '※ Japanese version: Based on Naito 2008 Tables 3–6. LNI not reported for PSA ≤4.0. GS 9–10 uses same bucket as GS 8.<br>※ Hopkins (Tosoian 2016): T2b/T2c combined. GG3 (4+3) and GG4 (GS8) combined. PSA 0–4.0 is a single bucket.<br>※ Hopkins (Eifler 2012): T2b/T2c combined. GG3 (4+3) and GG4 (GS8) are separate. PSA 0–2.5 and 2.6–4.0 are separate buckets.<br>※ NCCN v5.2026. Positive core percentage (~50%) affects Favorable/Unfavorable distinction.',
     disclaimer: '⚠️ This tool is for educational and reference purposes only. Clinical decisions must always be made by qualified medical professionals. The developer assumes no responsibility for any outcomes resulting from the use of this tool.',
     disclaimerFooter: '⚠️ For educational purposes only. Clinical decisions must be made by qualified medical professionals.',
     nVH_T3b:   'cT3b = Very High risk criterion',
@@ -503,15 +527,45 @@ const HOPKINS = {
 };
 
 // ============================================================
+// Hopkins データ（Eifler 2012, BJU Int 2013; 111:22–29）
+// ============================================================
+const EIFLER = {
+  T1c: {
+    le2_5: { GG1:{OC:[93,91,95],ECE:[7,5,8],  SVI:[0,0,1], LNI:[0,0,0]}, GG2:{OC:[83,78,87],ECE:[15,11,20],SVI:[2,0,3], LNI:[0,0,1]}, GG3:{OC:[80,74,85],ECE:[17,12,22],SVI:[3,1,6], LNI:[0,0,2]}, GG4:{OC:[79,72,85],ECE:[18,12,24],SVI:[3,1,6], LNI:[0,0,2]}, GG5:{OC:[74,61,83],ECE:[20,12,29],SVI:[5,1,12],LNI:[2,0,6]} },
+    "2to4":{ GG1:{OC:[87,85,89],ECE:[12,10,14],SVI:[0,0,1], LNI:[0,0,0]}, GG2:{OC:[71,67,75],ECE:[25,22,29],SVI:[2,1,4], LNI:[1,0,2]}, GG3:{OC:[66,60,71],ECE:[27,22,32],SVI:[4,2,7], LNI:[3,1,5]}, GG4:{OC:[65,57,72],ECE:[28,22,34],SVI:[4,2,8], LNI:[3,1,6]}, GG5:{OC:[56,44,67],ECE:[29,20,40],SVI:[7,3,12],LNI:[8,3,16]} },
+    "4to6":{ GG1:{OC:[84,83,86],ECE:[15,13,16],SVI:[1,0,1], LNI:[0,0,0]}, GG2:{OC:[66,63,69],ECE:[29,26,33],SVI:[4,2,5], LNI:[1,0,2]}, GG3:{OC:[60,55,65],ECE:[31,26,36],SVI:[6,4,9], LNI:[3,2,5]}, GG4:{OC:[59,51,66],ECE:[32,25,38],SVI:[6,4,10],LNI:[3,1,6]}, GG5:{OC:[50,38,60],ECE:[32,23,42],SVI:[10,5,16],LNI:[8,4,15]} },
+    "6to10":{ GG1:{OC:[80,78,82],ECE:[18,16,20],SVI:[1,1,2], LNI:[0,0,0]}, GG2:{OC:[59,55,63],ECE:[34,30,38],SVI:[6,4,8], LNI:[1,0,2]}, GG3:{OC:[53,47,58],ECE:[35,30,40],SVI:[9,6,13],LNI:[3,1,5]}, GG4:{OC:[52,44,59],ECE:[36,29,43],SVI:[9,5,14],LNI:[3,1,6]}, GG5:{OC:[42,31,52],ECE:[36,26,46],SVI:[14,8,21],LNI:[8,4,14]} },
+    gt10:  { GG1:{OC:[69,64,74],ECE:[27,22,31],SVI:[3,2,5], LNI:[0,0,1]}, GG2:{OC:[42,36,48],ECE:[42,36,47],SVI:[13,9,18],LNI:[3,1,5]}, GG3:{OC:[34,28,40],ECE:[38,32,45],SVI:[20,14,27],LNI:[8,4,14]}, GG4:{OC:[33,26,40],ECE:[39,31,47],SVI:[20,12,28],LNI:[8,3,14]}, GG5:{OC:[23,15,32],ECE:[33,24,44],SVI:[25,15,36],LNI:[18,9,30]} },
+  },
+  T2a: {
+    le2_5: { GG1:{OC:[90,87,92],ECE:[10,7,13], SVI:[0,0,1], LNI:[0,0,0]}, GG2:{OC:[76,70,81],ECE:[22,17,28],SVI:[2,0,4], LNI:[0,0,1]}, GG3:{OC:[72,65,79],ECE:[24,17,30],SVI:[3,1,7], LNI:[1,0,4]}, GG4:{OC:[71,62,79],ECE:[24,18,33],SVI:[3,1,7], LNI:[1,0,3]}, GG5:{OC:[65,51,76],ECE:[27,18,39],SVI:[6,1,13],LNI:[2,0,9]} },
+    "2to4":{ GG1:{OC:[82,78,84],ECE:[18,15,21],SVI:[1,0,1], LNI:[0,0,0]}, GG2:{OC:[61,56,66],ECE:[34,29,39],SVI:[3,1,5], LNI:[1,0,3]}, GG3:{OC:[56,48,62],ECE:[35,29,42],SVI:[5,2,8], LNI:[4,1,8]}, GG4:{OC:[54,46,63],ECE:[36,29,44],SVI:[5,2,9], LNI:[4,1,10]}, GG5:{OC:[45,33,56],ECE:[36,26,49],SVI:[7,3,14],LNI:[11,4,23]} },
+    "4to6":{ GG1:{OC:[78,74,81],ECE:[21,18,24],SVI:[1,1,1], LNI:[0,0,0]}, GG2:{OC:[56,51,60],ECE:[38,34,43],SVI:[4,3,6], LNI:[2,1,3]}, GG3:{OC:[49,43,56],ECE:[39,33,46],SVI:[7,4,10],LNI:[4,2,7]}, GG4:{OC:[48,40,56],ECE:[40,32,48],SVI:[7,4,11],LNI:[4,2,8]}, GG5:{OC:[39,28,50],ECE:[39,28,50],SVI:[10,5,16],LNI:[11,4,21]} },
+    "6to10":{ GG1:{OC:[73,68,77],ECE:[26,22,30],SVI:[1,1,2], LNI:[0,0,0]}, GG2:{OC:[48,43,54],ECE:[44,39,49],SVI:[6,4,9], LNI:[1,1,3]}, GG3:{OC:[42,36,49],ECE:[44,37,50],SVI:[10,6,15],LNI:[4,2,7]}, GG4:{OC:[41,33,50],ECE:[45,36,52],SVI:[10,5,16],LNI:[4,1,8]}, GG5:{OC:[32,23,43],ECE:[43,31,54],SVI:[14,7,22],LNI:[10,4,20]} },
+    gt10:  { GG1:{OC:[60,53,66],ECE:[36,30,42],SVI:[4,2,6], LNI:[1,0,2]}, GG2:{OC:[32,26,39],ECE:[50,43,56],SVI:[14,8,20],LNI:[4,2,7]}, GG3:{OC:[25,20,31],ECE:[44,36,53],SVI:[20,12,29],LNI:[10,4,18]}, GG4:{OC:[24,18,32],ECE:[45,35,55],SVI:[20,11,30],LNI:[10,4,20]}, GG5:{OC:[16,10,24],ECE:[37,25,49],SVI:[24,13,38],LNI:[22,10,37]} },
+  },
+  T2bc: {
+    le2_5: { GG1:{OC:[82,76,87],ECE:[17,12,23],SVI:[1,0,2], LNI:[0,0,0]}, GG2:{OC:[61,52,70],ECE:[33,25,42],SVI:[5,1,10],LNI:[1,0,3]}, GG3:{OC:[55,45,66],ECE:[34,25,44],SVI:[8,2,16],LNI:[2,0,9]}, GG4:{OC:[54,44,66],ECE:[35,24,46],SVI:[8,2,16],LNI:[3,0,9]}, GG5:{OC:[45,32,60],ECE:[35,23,48],SVI:[13,3,24],LNI:[7,0,21]} },
+    "2to4":{ GG1:{OC:[70,63,75],ECE:[28,22,35],SVI:[2,1,3], LNI:[1,0,2]}, GG2:{OC:[44,37,51],ECE:[46,39,53],SVI:[6,3,10],LNI:[4,2,8]}, GG3:{OC:[36,29,44],ECE:[43,35,51],SVI:[10,5,16],LNI:[11,5,20]}, GG4:{OC:[35,27,44],ECE:[44,34,53],SVI:[10,5,17],LNI:[11,4,21]}, GG5:{OC:[24,16,35],ECE:[37,26,51],SVI:[13,6,23],LNI:[25,12,42]} },
+    "4to6":{ GG1:{OC:[64,58,70],ECE:[32,27,39],SVI:[2,1,4], LNI:[1,0,2]}, GG2:{OC:[38,32,44],ECE:[49,42,56],SVI:[9,6,13],LNI:[4,2,8]}, GG3:{OC:[30,24,37],ECE:[45,38,52],SVI:[14,9,20],LNI:[11,5,17]}, GG4:{OC:[30,22,37],ECE:[46,37,55],SVI:[13,8,21],LNI:[11,5,19]}, GG5:{OC:[20,13,29],ECE:[38,26,51],SVI:[17,9,28],LNI:[24,12,40]} },
+    "6to10":{ GG1:{OC:[58,50,65],ECE:[38,32,45],SVI:[4,2,6], LNI:[1,0,2]}, GG2:{OC:[31,25,37],ECE:[52,46,59],SVI:[12,8,18],LNI:[4,2,7]}, GG3:{OC:[24,19,31],ECE:[47,40,55],SVI:[19,12,25],LNI:[10,5,16]}, GG4:{OC:[24,18,31],ECE:[48,39,57],SVI:[18,10,26],LNI:[10,5,18]}, GG5:{OC:[16,10,23],ECE:[40,28,52],SVI:[23,12,34],LNI:[22,10,35]} },
+    gt10:  { GG1:{OC:[42,34,50],ECE:[47,39,55],SVI:[9,5,14], LNI:[2,0,4]}, GG2:{OC:[17,13,23],ECE:[50,41,59],SVI:[23,15,33],LNI:[9,4,16]}, GG3:{OC:[12,8,16], ECE:[39,30,49],SVI:[30,20,41],LNI:[20,10,31]}, GG4:{OC:[11,8,16], ECE:[40,28,51],SVI:[29,18,42],LNI:[20,9,32]}, GG5:{OC:[6,4,11],  ECE:[27,18,40],SVI:[30,17,45],LNI:[36,20,53]} },
+  },
+};
+
+// ============================================================
 // マッピング
 // ============================================================
-const NAITO_PSA = { le4:'le4','4_6':'4_6','6_8':'6_8','8_10':'8_10','10to20':'ge10','20to40':'ge10',gt40:'ge10' };
+const NAITO_PSA = { le2_5:'le4','2to4':'le4',le4:'le4','4_6':'4_6','6_8':'6_8','8_10':'8_10','10to20':'ge10','20to40':'ge10',gt40:'ge10' };
 const NAITO_GS  = { le6:'le6','7_34':'7_34','7_43':'7_43','8':'ge8','9_10':'ge8' };
-const HOPK_PSA  = { le4:'le4','4_6':'4to6','6_8':'6to10','8_10':'6to10','10to20':'gt10','20to40':'gt10',gt40:'gt10' };
+const HOPK_PSA  = { le2_5:'le4','2to4':'le4',le4:'le4','4_6':'4to6','6_8':'6to10','8_10':'6to10','10to20':'gt10','20to40':'gt10',gt40:'gt10' };
 const HOPK_STG  = { T1c:'T1c',T2a:'T2a',T2b:'T2bc',T2c:'T2bc' };
 const HOPK_GG   = { le6:'GG1','7_34':'GG2','7_43':'GG34','8':'GG34','9_10':'GG5' };
+const EIFLER_PSA= { le2_5:'le2_5','2to4':'2to4',le4:'2to4','4_6':'4to6','6_8':'6to10','8_10':'6to10','10to20':'gt10','20to40':'gt10',gt40:'gt10' };
+const EIFLER_STG= { T1c:'T1c',T2a:'T2a',T2b:'T2bc',T2c:'T2bc' };
+const EIFLER_GG = { le6:'GG1','7_34':'GG2','7_43':'GG3','8':'GG4','9_10':'GG5' };
 
-const PSA_LABEL = { le4:'≤4.0','4_6':'4.1–6.0','6_8':'6.1–8.0','8_10':'8.1–10.0','10to20':'10.1–20.0','20to40':'20.1–40.0',gt40:'>40.0' };
+const PSA_LABEL = { le2_5:'≤2.5','2to4':'2.6–4.0',le4:'≤4.0','4_6':'4.1–6.0','6_8':'6.1–8.0','8_10':'8.1–10.0','10to20':'10.1–20.0','20to40':'20.1–40.0',gt40:'>40.0' };
 const GS_LABEL  = { le6:'≤6 (GG1)','7_34':'7(3+4) (GG2)','7_43':'7(4+3) (GG3)','8':'8 (GG4)','9_10':'9–10 (GG5)' };
 const STAGE_LBL = { T1c:'T1c',T2a:'T2a',T2b:'T2b',T2c:'T2c',T3a:'T3a',T3b:'T3b' };
 
@@ -645,18 +699,25 @@ function calculate() {
     setBar('naito-','svi',nd.SVI); setBar('naito-','lni',nd.LNI);
 
     const nNotes = [];
+    if (['le2_5','2to4'].includes(psa))           nNotes.push(t.naitoNoteLe4);
     if (['10to20','20to40','gt40'].includes(psa)) nNotes.push(t.naitoNote10);
     if (gs==='9_10') nNotes.push(t.naitoNoteGS);
     document.getElementById('naito-note').textContent = nNotes.length ? '※ '+nNotes.join('、') : '';
 
-    const hd = HOPKINS[HOPK_STG[stage]][HOPK_PSA[psa]][HOPK_GG[gs]];
+    let hd;
+    if (hopkinsVer === 'eifler') {
+      hd = EIFLER[EIFLER_STG[stage]][EIFLER_PSA[psa]][EIFLER_GG[gs]];
+    } else {
+      hd = HOPKINS[HOPK_STG[stage]][HOPK_PSA[psa]][HOPK_GG[gs]];
+    }
     setBar('hopkins-','ocd',hd.OC); setBar('hopkins-','epe',hd.ECE);
     setBar('hopkins-','svi',hd.SVI); setBar('hopkins-','lni',hd.LNI);
 
     const hNotes = [];
-    if (stage==='T2b'||stage==='T2c')     hNotes.push(t.hopkinsNoteT2bc);
-    if (gs==='7_43'||gs==='8')            hNotes.push(t.hopkinsNoteGG34);
-    if (['6_8','8_10'].includes(psa))     hNotes.push(t.hopkinsNote610);
+    if (stage==='T2b'||stage==='T2c')             hNotes.push(t.hopkinsNoteT2bc);
+    if (hopkinsVer==='tosoian' && (gs==='7_43'||gs==='8')) hNotes.push(t.hopkinsNoteGG34);
+    if (hopkinsVer==='tosoian' && ['le2_5','2to4'].includes(psa)) hNotes.push(t.hopkinsNoteLe4);
+    if (['6_8','8_10'].includes(psa))             hNotes.push(t.hopkinsNote610);
     if (['10to20','20to40','gt40'].includes(psa)) hNotes.push(t.hopkinsNoteGt10);
     document.getElementById('hopkins-note').textContent = hNotes.length ? '※ '+hNotes.join('、') : '';
   }
